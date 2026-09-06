@@ -71,8 +71,12 @@ export function oneWayUrl(trip, { from, to, date }) {
 
 const SKYSCANNER = 'https://www.skyscanner.net/transport/flights';
 
-/** Skyscanner uses its own metro codes; only London differs from IATA here. */
-const SKYSCANNER_PLACE = { LON: 'lond' };
+/**
+ * Skyscanner place codes, confirmed from real search URLs: London is "lond"
+ * and Miami is "miaa", while Orlando stays "mco". They are not simply
+ * lowercased IATA, so each one is recorded rather than derived.
+ */
+const SKYSCANNER_PLACE = { LON: 'lond', MIA: 'miaa' };
 
 const place = (iata) => (SKYSCANNER_PLACE[iata] ?? iata).toLowerCase();
 
@@ -80,7 +84,7 @@ const place = (iata) => (SKYSCANNER_PLACE[iata] ?? iata).toLowerCase();
 const ssDate = (iso) => iso.slice(2, 4) + iso.slice(5, 7) + iso.slice(8, 10);
 
 function skyscannerParams(trip, rtn) {
-  const { adults, childAges } = bucketParty(trip).standard;
+  const { adults, childAges } = bucketParty(trip).skyscanner;
   const p = new URLSearchParams({
     adultsv2: String(adults),
     cabinclass: trip.cabin,
@@ -106,6 +110,41 @@ export function skyscannerOneWayUrl(trip, { from, to, date }) {
     `${SKYSCANNER}/${place(from)}/${place(to)}/${ssDate(date)}/` +
     `?${skyscannerParams(trip, false)}`
   );
+}
+
+/**
+ * Skyscanner multi-city, confirmed from a real search:
+ *
+ *   /transport/d/lond/2027-08-11/mco/miaa/2027-08-22/lond/
+ *     ?adultsv2=2&childrenv2=12|9&cabinclass=economy
+ *     &fare-attributes=checked-bag
+ *
+ * A different path (/transport/d/) from the simple search, with each leg
+ * written out as place/date/place. This is how an open jaw is expressed —
+ * into Orlando, home from Miami — which Google's q= form cannot do.
+ *
+ * `fare-attributes=checked-bag` restricts results to fares that already
+ * include hold luggage. That matters more than it looks: it is the one thing
+ * that could replace the hand-curated estimates in carrier-fees.yml with a
+ * real bag-inclusive price.
+ */
+export function skyscannerMultiCityUrl(trip, legs, { checkedBagOnly = true } = {}) {
+  const path = legs
+    .map((l, i) =>
+      i === legs.length - 1
+        ? `${place(l.from)}/${l.date}/${place(l.to)}`
+        : `${place(l.from)}/${l.date}/${place(l.to)}`
+    )
+    .join('/');
+
+  const { adults, childAges } = bucketParty(trip).skyscanner;
+  const p = new URLSearchParams({
+    adultsv2: String(adults),
+    cabinclass: trip.cabin,
+  });
+  if (childAges.length) p.set('childrenv2', childAges.join('|'));
+  if (checkedBagOnly) p.set('fare-attributes', 'checked-bag');
+  return `https://www.skyscanner.net/transport/d/${path}/?${p}`;
 }
 
 /**

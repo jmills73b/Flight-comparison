@@ -168,7 +168,15 @@ export function bucketParty(trip) {
       children: children.length,
       infants: infants.length,
     },
-    // Google, Skyscanner and anything else with only adult/child/infant:
+    // Skyscanner: a real search reads adultsv2=2&childrenv2=12|9 — it accepts
+    // a 12-year-old as a child, where Google counts the same age as an adult.
+    // Fourth scheme, fourth bucket.
+    skyscanner: {
+      adults: trip.adults + unaccounted.length,
+      childAges: [...youngAdults, ...children].sort((a, b) => b - a),
+      infants: infants.length,
+    },
+    // Google and anything else with only adult/child/infant:
     // a young adult is an adult.
     standard: {
       adults: trip.adults + unaccounted.length + youngAdults.length,
