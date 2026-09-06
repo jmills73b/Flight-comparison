@@ -36,6 +36,53 @@ if (flag('--urls')) {
   process.exit(0);
 }
 
+/**
+ * A search for August 2027 returning nothing is ambiguous: the scraper may be
+ * broken, or the fares may simply not be loaded yet. Both look identical — an
+ * empty grid with no "no flights" message. This probes a date that is
+ * definitely on sale, so the two can be told apart. It writes no history.
+ */
+if (flag('--probe')) {
+  const soon = new Date(Date.now() + 60 * 86400000).toISOString().slice(0, 10);
+  const { oneWayUrl } = await import('./lib/urls.js');
+  const url = oneWayUrl(cfg.trip, { from: 'LON', to: 'MCO', date: soon });
+  console.log(`Probe: LON → MCO on ${soon} (60 days out, certainly on sale)`);
+  console.log(url + '\n');
+
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath: process.env.CHROMIUM_PATH || undefined,
+    args: ['--disable-blink-features=AutomationControlled'],
+  });
+  const page = await browser.newPage({ locale: cfg.trip.locale });
+  const out = await googleFlights(page, {
+    url,
+    trip: cfg.trip,
+    passengers: cfg.passengers,
+    directions: 1,
+  });
+
+  console.log(`status        ${out.status}`);
+  if (out.reason) console.log(`reason        ${out.reason}`);
+  console.log(`offers        ${out.offers.length}`);
+  for (const o of out.offers.slice(0, 5)) {
+    console.log(`  £${o.fare}  ${o.carrier ?? '—'}  ${o.stops ?? '—'} stops  ${o.durationMin ?? '—'}min`);
+  }
+  if (out.html) {
+    const text = out.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    console.log(`\nhtml          ${out.html.length} bytes`);
+    console.log(`prices seen   ${(text.match(/£\s?[\d,]{2,}/g) ?? []).slice(0, 8).join(', ') || 'none'}`);
+    console.log(`page says     ${text.slice(0, 300)}`);
+  }
+  console.log(
+    out.status === 'ok'
+      ? '\nVERDICT: the scraper works. August 2027 is simply not on sale yet.'
+      : '\nVERDICT: the scraper is broken — this date is definitely bookable.'
+  );
+  await browser.close();
+  process.exit(0);
+}
+
 const stamp = runStamp();
 const collectedAt = new Date().toISOString();
 console.log(`Run ${stamp} — ${searches.length} searches`);

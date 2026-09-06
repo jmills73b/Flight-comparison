@@ -11,6 +11,11 @@ on:
         description: 'Run a single search id (e.g. O1). Leave blank for all.'
         required: false
         type: string
+      probe:
+        description: 'Diagnostic: search a date 60 days out to prove whether the scraper works at all. Writes no data.'
+        required: false
+        default: false
+        type: boolean
 
 # Never let two runs write to the repository at once.
 concurrency:
@@ -42,7 +47,9 @@ jobs:
         id: collect
         continue-on-error: true
         run: |
-          if [ -n "${{ inputs.only }}" ]; then
+          if [ "${{ inputs.probe }}" = "true" ]; then
+            node scripts/collect.js --probe
+          elif [ -n "${{ inputs.only }}" ]; then
             node scripts/collect.js --only "${{ inputs.only }}"
           else
             node scripts/collect.js
