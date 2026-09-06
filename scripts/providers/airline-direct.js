@@ -68,12 +68,16 @@ const CARRIERS = {
   ba: {
     code: 'BA',
     name: 'British Airways',
+    // Real homepage, confirmed. The search path beyond it is still unknown.
+    home: 'https://www.britishairways.com/travel/home/public/en_gb/',
     base: 'https://www.britishairways.com/travel/booking/public/en_gb',
     consent: ['Accept all cookies', 'Accept All Cookies', 'Allow all'],
   },
   virgin: {
     code: 'VS',
     name: 'Virgin Atlantic',
+    // Real homepage, confirmed. The search path beyond it is still unknown.
+    home: 'https://www.virginatlantic.com/en-gb',
     base: 'https://www.virginatlantic.com/gb/en/book/flights',
     consent: ['Accept All Cookies', 'Accept all', 'I agree'],
   },
