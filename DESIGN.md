@@ -119,10 +119,12 @@ Three things about TUI change how it must be searched:
   **12 Aug → 19 Aug (7 nights, Thu→Thu)** fits cleanly. The 8, 10 and 11 night
   combinations may simply not be offered, and a "no such duration" result is
   expected rather than a bug.
-- **Route map needs verifying at build time.** TUI serves Orlando, but Orlando
-  *Sanford* (SFB) as well as Orlando International (MCO) in some seasons, and
-  Tampa service is not assumed. Phase 1 of the TUI adapter is simply establishing
-  which of MCO / SFB / TPA it actually flies in August 2027.
+- **Orlando means two airports.** TUI has historically flown to Orlando *Sanford*
+  (**SFB**) as well as Orlando International (MCO), so **both are searched**
+  (confirmed). SFB is ~45 minutes from the parks and is a charter/leisure airport —
+  which is why it is scoped to TUI only and not added to the scheduled matrix,
+  where UK→SFB service effectively doesn't exist. Tampa service by TUI is not
+  assumed and is probed rather than relied on.
 
 ### Legal note
 
@@ -214,10 +216,9 @@ Heathrow** options in a single query; the actual departure airport is read back
 from each result and recorded. This covers both airports without doubling the
 search count. (Exception: TUI, which needs a named airport and is Gatwick-only.)
 
-Florida arrival and departure airports are allowed to **differ** — an in-state open
-jaw, e.g. fly into Orlando, drive to Tampa, fly home from Tampa. If you'd rather
-only ever fly out of and back from the same Florida airport, that removes rows
-A2, A4, A6 and A8 below.
+Florida arrival and departure airports are allowed to **differ** (confirmed) — an
+in-state open jaw, e.g. fly into Orlando, drive across, fly home from Tampa. Rows
+A2, A4, A6 and A8 exist for exactly that.
 
 ### Shape A — home Thu 19 Aug from Florida
 
@@ -266,9 +267,25 @@ Seven one-way searches compose all 12 itineraries by addition:
 ### TUI (charter, Gatwick only)
 
 Searched separately against tui.co.uk, because this inventory appears nowhere else.
-Only **`A5`–`A8` (12→19 Aug, 7 nights)** fits a standard weekly charter rotation;
-the rest are attempted but expected to return nothing. Route coverage
-(MCO / SFB / TPA) is established in phase 1.
+Charter sells **matched return rotations**, so TUI is searched as same-airport
+returns rather than open jaws:
+
+| id | Route | Out | Home | Nights |
+|---|---|---|---|---|
+| `T1` | LGW ↔ MCO | Wed 11 Aug | Thu 19 Aug | 8 |
+| `T2` | LGW ↔ **SFB** | Wed 11 Aug | Thu 19 Aug | 8 |
+| `T3` | LGW ↔ TPA | Wed 11 Aug | Thu 19 Aug | 8 |
+| `T4` | LGW ↔ MCO | Thu 12 Aug | Thu 19 Aug | **7** |
+| `T5` | LGW ↔ **SFB** | Thu 12 Aug | Thu 19 Aug | **7** |
+| `T6` | LGW ↔ TPA | Thu 12 Aug | Thu 19 Aug | **7** |
+
+`T4`–`T6` are the 7-night Thu→Thu rotations and are the most likely to actually
+exist. `T1`–`T3` are attempted but may return nothing.
+
+**Shape B has no TUI option.** TUI does not serve Miami from the UK, and charter
+flight-only rarely sells unmatched legs — so the 22 Aug Miami return is a
+scheduled-carrier proposition only. If TUI turns out to be much cheaper, that is
+itself an argument for Shape A.
 
 ### Per-run totals
 
@@ -276,8 +293,8 @@ the rest are attempted but expected to return nothing. Route coverage
 |---|---|
 | Google Flights — return / multi-city | 12 |
 | Google Flights — shared one-way legs | 7 |
-| TUI — Gatwick charter | ~4 |
-| **Total per run** | **~23** |
+| TUI — Gatwick charter (incl. Sanford) | 6 |
+| **Total per run** | **25** |
 
 At two runs a day that's ~46 searches daily, roughly 25–35 minutes of runner time —
 free and unmetered on a public repo.
@@ -489,18 +506,37 @@ Flights scrape proves stable. Worth proving before building anything on top.
 
 ---
 
-## 12. Open questions
+## 12. Decisions and remaining questions
 
-1. **Cabin** — economy assumed throughout. Track premium economy too? On a 9-hour
-   daytime transatlantic with a 9-year-old it is a common upgrade, and the
-   premium-economy price curve behaves quite differently.
-2. **Direct flights only?** Connections via Dublin, Amsterdam or a US hub are
-   usually cheaper but add 4–6 hours each way. Should indirect options be tracked,
-   ranked lower, or excluded entirely?
-3. **Alert threshold** — what price drop is worth an email? A fixed floor
-   (e.g. "anything under £4,000") or a relative move (e.g. "5% below the 30-day
-   median")?
-4. **Booking horizon** — is there a date by which you want to have booked
-   regardless? That changes whether the dashboard should nudge toward a decision
-   as departure approaches.
-5. **Car hire fee** — worth wiring in as a real adjustment, or leave as a note?
+### Settled
+
+| Question | Decision |
+|---|---|
+| Passenger mix | 3 adults + 1 child (9). The 12-year-old prices as an adult |
+| In-state open jaw (A2/A4/A6/A8) | **Yes** — different Florida in/out airports allowed |
+| TUI charter | **Yes** — own adapter, Gatwick only |
+| Orlando Sanford (SFB) | **Yes**, for TUI searches only |
+| Storage | Committed to this repo; git history is the time series |
+| Web app | Static site on GitHub Pages |
+
+### Working defaults — assumed unless you say otherwise
+
+- **Cabin: economy only.** Premium economy is a common upgrade on a 9-hour daytime
+  transatlantic with children and its price curve behaves quite differently, so it
+  would be a genuinely useful second dataset. Adding it later roughly doubles the
+  search count, which is still free — it's a one-line config change, not a rewrite.
+- **Stops: direct and 1-stop tracked, 2+ excluded.** Direct is ranked above 1-stop
+  at equal price. Connections via Dublin, Amsterdam or a US hub are often
+  meaningfully cheaper but add 4–6 hours each way, so they are worth *seeing*
+  rather than hiding — the dashboard shows duration alongside price so the
+  trade-off is explicit.
+
+### Still open
+
+1. **Alert threshold** — what drop is worth an email? A fixed floor ("anything
+   under £4,000") or a relative move ("5% below the 30-day median")? Easiest to set
+   once there is a fortnight of data showing the real price range.
+2. **Booking deadline** — a date by which you want to have booked regardless? If so
+   the dashboard can nudge toward a decision as it approaches.
+3. **Car hire drop-off fee** — wire in as a real adjustment to Shape B's total, or
+   leave as a displayed note?
