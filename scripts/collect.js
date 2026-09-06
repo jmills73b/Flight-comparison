@@ -68,6 +68,39 @@ if (flag('--probe')) {
   for (const o of out.offers.slice(0, 5)) {
     console.log(`  £${o.fare}  ${o.carrier ?? '—'}  ${o.stops ?? '—'} stops  ${o.durationMin ?? '—'}min`);
   }
+  if (out.offers[0]) {
+    console.log(`\nrow text      ${out.offers[0].rawText}`);
+  }
+
+  // Is a quoted price the whole party or one seat? Google shows each in
+  // different contexts, and getting it wrong is a four-fold error in every
+  // number this tool produces. Run the identical search as a single adult and
+  // compare: roughly 4x means the figures above are party totals.
+  if (out.status === 'ok' && cfg.passengers > 1) {
+    const soloTrip = { ...cfg.trip, adults: 1, children: [] };
+    const soloPage = await browser.newPage({ locale: cfg.trip.locale });
+    const solo = await googleFlights(soloPage, {
+      url: oneWayUrl(soloTrip, { from: 'LON', to: 'MCO', date: soon }),
+      trip: soloTrip,
+      passengers: 1,
+      directions: 1,
+    });
+    const cheapest = (r) => (r.offers.length ? Math.min(...r.offers.map((o) => o.fare)) : null);
+    const party = cheapest(out);
+    const one = cheapest(solo);
+    console.log(`\ncheapest, ${cfg.passengers} pax   £${party ?? '—'}`);
+    console.log(`cheapest, 1 pax   £${one ?? '—'}`);
+    if (party && one) {
+      const ratio = party / one;
+      console.log(`ratio             ${ratio.toFixed(2)}x`);
+      console.log(
+        ratio > 2.5
+          ? `PRICES ARE PARTY TOTALS — correct as used.`
+          : `PRICES ARE PER PERSON — every total is understated ${cfg.passengers}x and must be multiplied.`
+      );
+    }
+    await soloPage.close();
+  }
   if (out.html) {
     const text = out.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
     console.log(`\nhtml          ${out.html.length} bytes`);
