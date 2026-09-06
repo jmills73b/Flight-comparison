@@ -159,6 +159,15 @@ export function bucketParty(trip) {
       children: children.length,
       infants: infants.length,
     },
+    // Virgin: passengers=a2t1c1i0 — adults, teens, children, infants. Same
+    // 12-15 band as BA under a different name; kept separate so the two can
+    // diverge if either changes its rules.
+    virgin: {
+      adults: trip.adults + unaccounted.length,
+      teens: youngAdults.length,
+      children: children.length,
+      infants: infants.length,
+    },
     // Google, Skyscanner and anything else with only adult/child/infant:
     // a young adult is an adult.
     standard: {

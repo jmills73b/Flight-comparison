@@ -21,8 +21,11 @@
  * than invented. An earlier guessed URL timed out; this one is the genuine
  * /nx/b/airselect/ search path with its real parameter names.
  *
- * VIRGIN ATLANTIC: still a guess, and still marked as such. It rendered no
- * price on the first run and needs a real search URL before it can be trusted.
+ * VIRGIN ATLANTIC: the URL is now REAL too, read off an actual search. It uses
+ * a slice model — origin, destination and departing repeat once per leg — and
+ * a packed passenger string, passengers=a2t1c1i0 for adults, teens, children
+ * and infants. Because each leg is stated separately, Virgin can express an
+ * open jaw, which Google's q= form cannot.
  */
 import {
   parseMoney,
@@ -69,19 +72,42 @@ function baSearchUrl(trip, party, { from, to, out, back }) {
 }
 
 /**
- * Virgin's real search URL is not known yet, so this remains a guess and will
- * probably fail. Kept so the adapter is wired and ready the moment a genuine
- * search URL is available, rather than pretending it works.
+ * Real Virgin Atlantic search URL, taken verbatim from a performed search:
+ *
+ *   /flights/search/slice?passengers=a2t1c1i0
+ *     &origin=LHR&origin=MCO&destination=MCO&destination=LHR
+ *     &departing=2027-07-22&departing=2027-07-29
+ *
+ * Each leg is a "slice": origin, destination and departing repeat once per
+ * leg, in order. That makes an open jaw expressible — fly into Orlando, home
+ * from Miami — which Google's q= form cannot do, so `slices` is accepted
+ * directly as well as the simple from/to/out/back shape.
+ *
+ * Virgin does not appear to take the LON metro code, so a London search is
+ * narrowed to Heathrow. That is a real narrowing and it is recorded on the
+ * offer: Virgin's UK-Florida flying is Heathrow-based, but any Gatwick service
+ * would be missed.
  */
-function virginSearchUrl(trip, party, { from, to, out, back }) {
-  const p = new URLSearchParams({
-    origin: from,
-    destination: to,
-    departureDate: out,
-    passengerCount: String(party.total),
-    cabinClass: trip.cabin,
-  });
-  if (back) p.set('returnDate', back);
+function virginPassengers(party) {
+  const v = party.virgin;
+  return `a${v.adults}t${v.teens}c${v.children}i${v.infants}`;
+}
+
+const VIRGIN_PLACE = { LON: 'LHR' };
+const vsPlace = (iata) => VIRGIN_PLACE[iata] ?? iata;
+
+function virginSearchUrl(trip, party, route) {
+  // Either an explicit list of legs, or the usual out-and-back pair.
+  const slices = route.slices ?? [
+    { from: route.from, to: route.to, date: route.out },
+    ...(route.back ? [{ from: route.to, to: route.from, date: route.back }] : []),
+  ];
+
+  const p = new URLSearchParams();
+  p.set('passengers', virginPassengers(party));
+  for (const s of slices) p.append('origin', vsPlace(s.from));
+  for (const s of slices) p.append('destination', vsPlace(s.to));
+  for (const s of slices) p.append('departing', s.date);
   return `${CARRIERS.virgin.search}?${p}`;
 }
 
@@ -100,8 +126,8 @@ const CARRIERS = {
     name: 'Virgin Atlantic',
     // Real homepage, confirmed. The search path beyond it is still unknown.
     home: 'https://www.virginatlantic.com/en-gb',
-    // Still a guess — no real search URL yet.
-    search: 'https://www.virginatlantic.com/gb/en/book/flights',
+    // Confirmed from a real search.
+    search: 'https://www.virginatlantic.com/flights/search/slice',
     consent: ['Accept All Cookies', 'Accept all', 'I agree'],
   },
 };
