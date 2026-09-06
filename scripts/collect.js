@@ -282,16 +282,22 @@ for (const s of searches) {
   console.log(`  ${icon} ${s.id.padEnd(4)} ${s.label.padEnd(14)} ${detail}`);
 
   if (priced.length === 0) {
-    historyRows.push({
-      collected_at: collectedAt,
-      search_id: s.id,
-      signature: s.signature,
-      provider: outcome.provider ?? '',
-      kind: s.kind,
-      status: outcome.status,
-      out_date: s.out ?? s.date ?? '',
-      back_date: s.back ?? '',
-    });
+    // One row per source, not one for the search. Recording only the first
+    // provider's outcome attributed every failure to whichever ran first and
+    // hid what the other three actually did — the opposite of making the
+    // source clear.
+    for (const a of attempts) {
+      historyRows.push({
+        collected_at: collectedAt,
+        search_id: s.id,
+        signature: s.signature,
+        provider: a.provider,
+        kind: s.kind,
+        status: a.status,
+        out_date: s.out ?? s.date ?? '',
+        back_date: s.back ?? '',
+      });
+    }
   } else {
     for (const o of priced) {
       historyRows.push({

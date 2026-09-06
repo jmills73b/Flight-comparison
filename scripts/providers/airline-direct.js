@@ -16,6 +16,19 @@
  *
  * Each adapter reports the single carrier it searched, so a price from here is
  * never attributed to the wrong airline: `carrier` is fixed, not inferred.
+ *
+ * STATUS: THE BOOKING URLS BELOW ARE UNVERIFIED GUESSES AND DO NOT WORK.
+ * On the first live run British Airways timed out navigating and Virgin
+ * rendered no price. The parameter names here were written from memory, not
+ * from a real booking URL — the same mistake this project deliberately avoided
+ * with Google's private `tfs` protobuf, where a wrong guess produces a
+ * plausible URL that quietly searches for the wrong thing.
+ *
+ * These adapters are therefore scaffolding, not a working source. Fixing them
+ * needs a genuine search URL copied from a browser that has just performed the
+ * search, so the real parameter names and date format can be read off rather
+ * than invented. The parsing and safety logic below is sound and reusable; it
+ * is only `bookingUrl` that is fiction.
  */
 import {
   parseMoney,
