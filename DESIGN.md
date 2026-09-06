@@ -296,8 +296,8 @@ itself an argument for Shape A.
 | TUI — Gatwick charter (incl. Sanford) | 6 |
 | **Total per run** | **25** |
 
-At two runs a day that's ~46 searches daily, roughly 25–35 minutes of runner time —
-free and unmetered on a public repo.
+At two runs a day that's **50 searches daily**, roughly 25–35 minutes of runner
+time — free and unmetered on a public repo.
 
 ---
 
