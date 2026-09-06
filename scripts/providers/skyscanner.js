@@ -37,7 +37,7 @@ const AIRLINE_CODES = [
 export const PROVIDER = 'skyscanner';
 export const PROVIDER_LABEL = 'Skyscanner';
 
-export async function search(page, { url, trip, passengers, timeoutMs = 60000 }) {
+export async function search(page, { url, trip, passengers, timeoutMs = 30000 }) {
   const started = Date.now();
   try {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });

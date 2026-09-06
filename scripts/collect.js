@@ -185,6 +185,18 @@ const context = await browser.newContext({
 const results = [];
 const historyRows = [];
 
+/**
+ * Circuit breaker. Four providers over eleven searches is 44 attempts, and a
+ * provider that cannot be read costs a full timeout every time — enough to
+ * blow the job's 30 minute budget on nothing but waiting. Two consecutive
+ * failures with no offer at all is sufficient evidence; stop asking, and
+ * record why so the dashboard shows the provider as tripped rather than
+ * silently absent.
+ */
+const FAILURES_BEFORE_GIVING_UP = 2;
+const consecutiveFailures = {};
+const tripped = {};
+
 for (const s of searches) {
   const page = await context.newPage();
   const directions = s.kind === 'round_trip' ? 2 : 1;
@@ -200,6 +212,12 @@ for (const s of searches) {
   const attempts = [];
   for (const p of providers) {
     if (!p.url) continue;
+    if (tripped[p.name]) {
+      attempts.push({ provider: p.name, status: 'skipped_provider_down', offers: [],
+                      reason: tripped[p.name] });
+      continue;
+    }
+
     const r = await p.run(page, {
       url: p.url,
       trip: cfg.trip,
@@ -207,7 +225,21 @@ for (const s of searches) {
       directions,
     });
     attempts.push({ provider: p.name, ...r });
-    if (r.html) writeDebugHtml(stamp, `${s.id}-${p.name}`, r.html);
+
+    if (r.status === 'ok') {
+      consecutiveFailures[p.name] = 0;
+    } else {
+      consecutiveFailures[p.name] = (consecutiveFailures[p.name] ?? 0) + 1;
+      if (consecutiveFailures[p.name] >= FAILURES_BEFORE_GIVING_UP) {
+        tripped[p.name] = `${consecutiveFailures[p.name]} consecutive failures (last: ${r.status})`;
+        console.log(`  ! ${p.name} given up on for this run — ${tripped[p.name]}`);
+      }
+      // Only the first failure per provider is worth keeping HTML for; after
+      // that it is the same page over and over.
+      if (r.html && consecutiveFailures[p.name] === 1) {
+        writeDebugHtml(stamp, `${s.id}-${p.name}`, r.html);
+      }
+    }
     await sleep(2000 + Math.random() * 2000);
   }
 
@@ -340,6 +372,20 @@ const snapshot = {
 
 const snapFile = writeSnapshot(stamp, snapshot);
 const written = appendHistory(historyRows);
+
+const byProvider = {};
+for (const r of results) {
+  for (const a of r.attempts ?? []) {
+    byProvider[a.provider] ??= { ok: 0, failed: 0, skipped: 0 };
+    if (a.status === 'ok') byProvider[a.provider].ok++;
+    else if (a.status === 'skipped_provider_down') byProvider[a.provider].skipped++;
+    else byProvider[a.provider].failed++;
+  }
+}
+console.log('\nBy source:');
+for (const [name, c] of Object.entries(byProvider)) {
+  console.log(`  ${(SOURCE_LABELS[name] ?? name).padEnd(26)} ok ${c.ok}  failed ${c.failed}  skipped ${c.skipped}`);
+}
 
 console.log(`\n${okCount}/${results.length} searches returned offers`);
 console.log(`Snapshot  ${snapFile.replace(process.cwd() + '/', '')}`);

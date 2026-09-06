@@ -69,7 +69,7 @@ const CARRIERS = {
 function makeAdapter(key) {
   const carrier = CARRIERS[key];
 
-  return async function search(page, { url, trip, passengers, timeoutMs = 60000 }) {
+  return async function search(page, { url, trip, passengers, timeoutMs = 30000 }) {
     const started = Date.now();
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
