@@ -105,10 +105,24 @@ stops and fare brand. Best single source by a distance.
 British Airways, Virgin Atlantic and Norse Atlantic. Direct scrapes are more
 reliable and give authoritative baggage rules. Worth adding once the primary works.
 
-**Known blind spot — TUI.** TUI flies LGW→MCO/TPA as **charter**, and those seats
-are invisible to Google Flights and Skyscanner. For UK→Florida in August they are
-frequently competitive. Until a dedicated adapter exists, the dashboard should
-carry a standing reminder to check TUI manually.
+**Third — TUI (charter).** TUI sells UK→Florida seats that are **invisible to
+Google Flights and Skyscanner**, because charter inventory isn't distributed
+through the GDS. For UK→Florida in August they are frequently competitive, so this
+gets its own adapter rather than a manual reminder.
+
+Three things about TUI change how it must be searched:
+
+- **Gatwick only.** TUI does not operate from Heathrow. Every TUI search is
+  `LGW`, never the `LON` metro code.
+- **Weekly rotations.** Charter aircraft fly fixed weekly patterns, so TUI sells
+  mostly **7 and 14 night** durations. Of our four date pairs, only
+  **12 Aug → 19 Aug (7 nights, Thu→Thu)** fits cleanly. The 8, 10 and 11 night
+  combinations may simply not be offered, and a "no such duration" result is
+  expected rather than a bug.
+- **Route map needs verifying at build time.** TUI serves Orlando, but Orlando
+  *Sanford* (SFB) as well as Orlando International (MCO) in some seasons, and
+  Tampa service is not assumed. Phase 1 of the TUI adapter is simply establishing
+  which of MCO / SFB / TPA it actually flies in August 2027.
 
 ### Legal note
 
@@ -193,37 +207,79 @@ README.md
 
 ---
 
-## 6. The tracked itinerary matrix
+## 6. What gets checked — the full combination list
 
-Origin is searched as the metro code **`LON`**, which covers both Gatwick and
-Heathrow in one query; the actual airport is read back from the result.
+London is searched as the metro code **`LON`**, which returns **both Gatwick and
+Heathrow** options in a single query; the actual departure airport is read back
+from each result and recorded. This covers both airports without doubling the
+search count. (Exception: TUI, which needs a named airport and is Gatwick-only.)
 
-**Shape A — 8/9 nights, return 19 Aug.** Florida arrival and departure airports are
-allowed to differ (an in-state open jaw, e.g. into Orlando, home from Tampa).
+Florida arrival and departure airports are allowed to **differ** — an in-state open
+jaw, e.g. fly into Orlando, drive to Tampa, fly home from Tampa. If you'd rather
+only ever fly out of and back from the same Florida airport, that removes rows
+A2, A4, A6 and A8 below.
 
-| id | Out date | Into | Home from |
-|---|---|---|---|
-| `A-11-MCO-MCO` | 11 Aug | MCO | MCO |
-| `A-11-MCO-TPA` | 11 Aug | MCO | TPA |
-| `A-11-TPA-TPA` | 11 Aug | TPA | TPA |
-| `A-11-TPA-MCO` | 11 Aug | TPA | MCO |
-| `A-12-*` | 12 Aug | — | same four combinations |
+### Shape A — home Thu 19 Aug from Florida
 
-**Shape B — 11/12 nights, return 22 Aug from Miami.**
+| # | id | Outbound | Into | Home from | Nights |
+|---|---|---|---|---|---|
+| 1 | `A1` | Wed 11 Aug | MCO | MCO | 8 |
+| 2 | `A2` | Wed 11 Aug | MCO | TPA | 8 |
+| 3 | `A3` | Wed 11 Aug | TPA | TPA | 8 |
+| 4 | `A4` | Wed 11 Aug | TPA | MCO | 8 |
+| 5 | `A5` | Thu 12 Aug | MCO | MCO | **7** |
+| 6 | `A6` | Thu 12 Aug | MCO | TPA | **7** |
+| 7 | `A7` | Thu 12 Aug | TPA | TPA | **7** |
+| 8 | `A8` | Thu 12 Aug | TPA | MCO | **7** |
 
-| id | Out date | Into | Home from |
-|---|---|---|---|
-| `B-11-MCO` | 11 Aug | MCO | MIA |
-| `B-11-TPA` | 11 Aug | TPA | MIA |
-| `B-12-MCO` | 12 Aug | MCO | MIA |
-| `B-12-TPA` | 12 Aug | TPA | MIA |
+### Shape B — home Sun 22 Aug from Miami
 
-**12 itineraries total.** Every Shape B itinerary is priced **twice** — once as a
-single multi-city ticket, once as two independent one-ways — because those diverge
-substantially on transatlantic routes and the one-way pairing is sometimes far
-cheaper. That gives **16 priced combinations**, ~24 searches/day across two runs.
+| # | id | Outbound | Into | Home from | Nights |
+|---|---|---|---|---|---|
+| 9 | `B1` | Wed 11 Aug | MCO | MIA | 11 |
+| 10 | `B2` | Wed 11 Aug | TPA | MIA | 11 |
+| 11 | `B3` | Thu 12 Aug | MCO | MIA | 10 |
+| 12 | `B4` | Thu 12 Aug | TPA | MIA | 10 |
 
-At roughly 30–45s per search that is about 15–20 minutes of runner time per day —
+**12 itineraries.** All 12 are checked on every run.
+
+### Two pricing modes for each
+
+Every itinerary is priced **both** as a single ticket (return or multi-city) **and**
+as two independent one-ways. These diverge a lot on transatlantic routes — legacy
+carriers usually price a round trip below two one-ways, low-cost carriers like
+Norse often the reverse — so both are needed to find the real cheapest.
+
+The one-way side does **not** need 24 extra searches, because the legs are shared.
+Seven one-way searches compose all 12 itineraries by addition:
+
+| Leg | Search | Used by |
+|---|---|---|
+| `O1` | LON → MCO, Wed 11 Aug | A1, A2, B1 |
+| `O2` | LON → TPA, Wed 11 Aug | A3, A4, B2 |
+| `O3` | LON → MCO, Thu 12 Aug | A5, A6, B3 |
+| `O4` | LON → TPA, Thu 12 Aug | A7, A8, B4 |
+| `R1` | MCO → LON, Thu 19 Aug | A1, A4, A5, A8 |
+| `R2` | TPA → LON, Thu 19 Aug | A2, A3, A6, A7 |
+| `R3` | MIA → LON, Sun 22 Aug | B1, B2, B3, B4 |
+
+### TUI (charter, Gatwick only)
+
+Searched separately against tui.co.uk, because this inventory appears nowhere else.
+Only **`A5`–`A8` (12→19 Aug, 7 nights)** fits a standard weekly charter rotation;
+the rest are attempted but expected to return nothing. Route coverage
+(MCO / SFB / TPA) is established in phase 1.
+
+### Per-run totals
+
+| Source | Searches |
+|---|---|
+| Google Flights — return / multi-city | 12 |
+| Google Flights — shared one-way legs | 7 |
+| TUI — Gatwick charter | ~4 |
+| **Total per run** | **~23** |
+
+At two runs a day that's ~46 searches daily, roughly 25–35 minutes of runner time —
 free and unmetered on a public repo.
 
 ---
@@ -322,19 +378,66 @@ bags_included_pp, deep_link
 
 ---
 
-## 9. Dashboard
+## 9. Storage and the web app
 
-Served from `docs/` via GitHub Pages.
+Both live in **this repository**. No database, no Cloudflare, no hosting account,
+nothing to pay for or maintain.
+
+### Where results are stored
+
+| What | Where | Why |
+|---|---|---|
+| Raw scrape output | `data/snapshots/YYYY-MM-DD-HHmm.json.gz` | Full audit trail — lets old runs be re-parsed if the normaliser improves |
+| Flat time series | `data/history.csv` | Append-only, one row per offer per run. Opens directly in Excel |
+| Dashboard feed | `docs/data.json` | Compact, regenerated each run for the web app to read |
+
+The Actions workflow commits these back to the repo on every run, which means
+**git history is the price time series**. `git log -p data/history.csv` reads as a
+literal price diary, and any past state can be recovered exactly. That is the whole
+storage layer — a database would add cost and moving parts for no benefit at this
+scale.
+
+**Size management.** Over ~340 days at 2 runs/day this would otherwise grow to a
+few hundred MB. Two measures keep it comfortably small: raw snapshots are **gzipped**
+(JSON compresses ~10×), and `history.csv` keeps only the **top 5 offers per search**
+rather than every result. Expected total well under 50 MB.
+
+### The web app
+
+A static site in `docs/`, published free by **GitHub Pages** at:
+
+```
+https://jmills73b.github.io/Flight-comparison/
+```
+
+It's plain HTML/JS reading `docs/data.json` — no server, no build step, no
+framework needed. Every scrape run updates the data file and the site reflects it
+within a minute.
+
+> **One manual step:** GitHub Pages must be enabled once in
+> **Settings → Pages → Source: GitHub Actions**. Pages is not currently enabled on
+> this repo and can't be switched on from code.
+
+*Alternative considered:* Cloudflare Pages would also host this free and could point
+at the same repo. GitHub Pages wins only because the data already lives here, so
+it's one less account in the loop. Swapping later is a config change, not a rewrite.
+
+### What the app shows
 
 1. **Headline** — current best `true_total`, with delta vs first-ever-seen and vs
    7 days ago. Plus days-to-departure and last-collected timestamp.
 2. **Price over time** — line per `search_id`, `true_total` on the y-axis. The
    core "is it going up or down" view.
-3. **Comparison matrix** — out-date × itinerary shape, cells coloured by price.
-   Answers "is the 12th cheaper than the 11th, and is Miami-out worth it".
+3. **Comparison matrix** — all 12 itineraries as rows, cells coloured by price.
+   Answers "is the 12th cheaper than the 11th, and is flying home from Miami
+   actually worth it".
 4. **Best-offer detail table** — full breakdown: carrier, flight numbers, times,
    stops, duration, bags, headline vs true total, deep link to book.
-5. **Standing notes** — the TUI charter reminder, and the car hire adjustment below.
+5. **Single vs split ticket** — for each itinerary, the one-ticket price beside the
+   two-one-ways price, so the cheaper structure is obvious at a glance.
+6. **Source coverage** — which of Google Flights / TUI returned results for each
+   itinerary, so a silently broken scraper or a not-yet-on-sale route is visible
+   rather than looking like "no cheap flights".
 
 Charts should be built with the project's dataviz conventions rather than
 library defaults.
@@ -375,10 +478,11 @@ and Shape B are compared honestly, on total trip cost rather than airfare alone.
 | 0 | **This document** |
 | 1 | Scaffold: `track.yml`, `searches.yml`, Playwright harness, commit-back loop |
 | 2 | Google Flights adapter for a single search; verify data quality by hand |
-| 3 | Expand to all 12 itineraries + two-one-ways pricing |
-| 4 | Pages dashboard with charts and comparison matrix |
-| 5 | Price-drop alerting via GitHub issue |
-| 6 | Direct adapters: BA, Virgin, TUI |
+| 3 | Expand to all 12 itineraries + the 7 shared one-way legs |
+| 4 | **TUI adapter** — confirm route map, then LGW charter searches |
+| 5 | Pages dashboard with charts and comparison matrix |
+| 6 | Price-drop alerting via GitHub issue |
+| 7 | Optional direct adapters: BA, Virgin, Norse |
 
 Phases 1–2 are the risky part: everything after depends on whether the Google
 Flights scrape proves stable. Worth proving before building anything on top.
