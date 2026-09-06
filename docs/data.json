@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-06T22:47:01.247Z",
+  "generated_at": "2026-09-06T22:47:14.761Z",
   "trip": {
     "name": "Florida 2027",
     "adults": 2,
@@ -8,7 +8,7 @@
     "currency": "GBP"
   },
   "lastCollected": "2026-09-06T21:20:52.115Z",
-  "runCount": 5,
+  "runCount": 6,
   "carHire": {
     "apply": false,
     "estimate_gbp": 150,
@@ -42,11 +42,16 @@
       "deepLink": null
     },
     "firstSeen": {
-      "at": "2026-09-06T21:20:52.115Z",
+      "at": "2026-09-06T17:20:44.580Z",
       "price": 1812
     },
     "changeSinceFirst": 0,
     "series": [
+      {
+        "at": "2026-09-06T17:20:44.580Z",
+        "price": 1812,
+        "mode": "single_ticket"
+      },
       {
         "at": "2026-09-06T21:20:52.115Z",
         "price": 1812,
@@ -82,11 +87,16 @@
         "deepLink": null
       },
       "firstSeen": {
-        "at": "2026-09-06T21:20:52.115Z",
+        "at": "2026-09-06T17:20:44.580Z",
         "price": 1812
       },
       "changeSinceFirst": 0,
       "series": [
+        {
+          "at": "2026-09-06T17:20:44.580Z",
+          "price": 1812,
+          "mode": "single_ticket"
+        },
         {
           "at": "2026-09-06T21:20:52.115Z",
           "price": 1812,
@@ -140,11 +150,16 @@
         "deepLink": null
       },
       "firstSeen": {
-        "at": "2026-09-06T21:20:52.115Z",
-        "price": 2888
+        "at": "2026-09-06T17:20:44.580Z",
+        "price": 2884
       },
-      "changeSinceFirst": 0,
+      "changeSinceFirst": 4,
       "series": [
+        {
+          "at": "2026-09-06T17:20:44.580Z",
+          "price": 2884,
+          "mode": "single_ticket"
+        },
         {
           "at": "2026-09-06T21:20:52.115Z",
           "price": 2888,
@@ -198,11 +213,16 @@
         "deepLink": null
       },
       "firstSeen": {
-        "at": "2026-09-06T21:20:52.115Z",
+        "at": "2026-09-06T17:20:44.580Z",
         "price": 2096
       },
       "changeSinceFirst": 0,
       "series": [
+        {
+          "at": "2026-09-06T17:20:44.580Z",
+          "price": 2096,
+          "mode": "single_ticket"
+        },
         {
           "at": "2026-09-06T21:20:52.115Z",
           "price": 2096,
@@ -256,11 +276,16 @@
         "deepLink": null
       },
       "firstSeen": {
-        "at": "2026-09-06T21:20:52.115Z",
+        "at": "2026-09-06T17:20:44.580Z",
         "price": 2228
       },
       "changeSinceFirst": 0,
       "series": [
+        {
+          "at": "2026-09-06T17:20:44.580Z",
+          "price": 2228,
+          "mode": "single_ticket"
+        },
         {
           "at": "2026-09-06T21:20:52.115Z",
           "price": 2228,
@@ -423,21 +448,21 @@
     },
     "R1": {
       "signature": "2027-08-19|MCO>LON",
-      "provider": "skyscanner",
+      "provider": "virgin_atlantic",
       "status": "skipped_provider_down",
       "at": "2026-09-06T21:20:52.115Z",
       "retired": false
     },
     "R2": {
       "signature": "2027-08-19|TPA>LON",
-      "provider": "skyscanner",
+      "provider": "virgin_atlantic",
       "status": "skipped_provider_down",
       "at": "2026-09-06T21:20:52.115Z",
       "retired": false
     },
     "R3": {
       "signature": "2027-08-22|MIA>LON",
-      "provider": "skyscanner",
+      "provider": "virgin_atlantic",
       "status": "skipped_provider_down",
       "at": "2026-09-06T21:20:52.115Z",
       "retired": false
