@@ -53,6 +53,57 @@ export function oneWayUrl(trip, { from, to, date }) {
   return `${BASE}?${p}`;
 }
 
+// ---------------------------------------------------------------------------
+// Skyscanner
+//
+// Added because Google carries no August 2027 inventory yet while Skyscanner
+// does — it aggregates OTAs and consolidators that sell further ahead. Its
+// URLs are path-based and stable, so no query parsing is involved.
+//
+// Skyscanner quotes PER PERSON where Google quotes the party total. The
+// adapter normalises to a party total and records which basis it came from,
+// because silently mixing the two would be a fourfold error.
+// ---------------------------------------------------------------------------
+
+const SKYSCANNER = 'https://www.skyscanner.net/transport/flights';
+
+/** Skyscanner uses its own metro codes; only London differs from IATA here. */
+const SKYSCANNER_PLACE = { LON: 'lond' };
+
+const place = (iata) => (SKYSCANNER_PLACE[iata] ?? iata).toLowerCase();
+
+/** Skyscanner dates are YYMMDD. */
+const ssDate = (iso) => iso.slice(2, 4) + iso.slice(5, 7) + iso.slice(8, 10);
+
+function skyscannerParams(trip, rtn) {
+  const p = new URLSearchParams({
+    adultsv2: String(trip.adults),
+    cabinclass: trip.cabin,
+    rtn: rtn ? '1' : '0',
+    currency: trip.currency,
+    market: 'UK',
+    locale: trip.locale,
+    preferdirects: 'false',
+  });
+  const kids = trip.children ?? [];
+  if (kids.length) p.set('childrenv2', kids.join('|'));
+  return p;
+}
+
+export function skyscannerRoundTripUrl(trip, { from, to, out, back }) {
+  return (
+    `${SKYSCANNER}/${place(from)}/${place(to)}/${ssDate(out)}/${ssDate(back)}/` +
+    `?${skyscannerParams(trip, true)}`
+  );
+}
+
+export function skyscannerOneWayUrl(trip, { from, to, date }) {
+  return (
+    `${SKYSCANNER}/${place(from)}/${place(to)}/${ssDate(date)}/` +
+    `?${skyscannerParams(trip, false)}`
+  );
+}
+
 /**
  * Every search this run will perform, in execution order. Each entry carries
  * the id it will be recorded under, so the collector never has to reconstruct
@@ -76,6 +127,12 @@ export function plannedSearches({ trip, itineraries, legs }) {
         out: it.out,
         back: it.back,
       }),
+      skyscannerUrl: skyscannerRoundTripUrl(trip, {
+        from: it.origin,
+        to: it.into,
+        out: it.out,
+        back: it.back,
+      }),
     });
   }
 
@@ -87,6 +144,11 @@ export function plannedSearches({ trip, itineraries, legs }) {
       label: `${leg.from} → ${leg.to}`,
       date: leg.date,
       url: oneWayUrl(trip, { from: leg.from, to: leg.to, date: leg.date }),
+      skyscannerUrl: skyscannerOneWayUrl(trip, {
+        from: leg.from,
+        to: leg.to,
+        date: leg.date,
+      }),
     });
   }
 

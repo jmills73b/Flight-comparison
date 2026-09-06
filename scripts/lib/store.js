@@ -14,6 +14,7 @@ export const HISTORY_COLUMNS = [
   // reused for a different search if the trip dates change; this cannot, so
   // series are grouped on it rather than on the id.
   'signature',
+  'provider',
   'kind',
   'status',
   'out_date',

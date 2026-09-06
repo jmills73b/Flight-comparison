@@ -9,6 +9,7 @@ import {
   appendHistory,
 } from './lib/store.js';
 import { search as googleFlights, PROVIDER } from './providers/google-flights.js';
+import { search as skyscanner, PROVIDER as SKYSCANNER } from './providers/skyscanner.js';
 
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
@@ -45,6 +46,7 @@ if (flag('--urls')) {
 if (flag('--probe')) {
   const soon = new Date(Date.now() + 60 * 86400000).toISOString().slice(0, 10);
   const { oneWayUrl } = await import('./lib/urls.js');
+  const { skyscannerOneWayUrl } = await import('./lib/urls.js');
   const url = oneWayUrl(cfg.trip, { from: 'LON', to: 'MCO', date: soon });
   console.log(`Probe: LON → MCO on ${soon} (60 days out, certainly on sale)`);
   console.log(url + '\n');
@@ -109,9 +111,38 @@ if (flag('--probe')) {
   }
   console.log(
     out.status === 'ok'
-      ? '\nVERDICT: the scraper works. August 2027 is simply not on sale yet.'
-      : '\nVERDICT: the scraper is broken — this date is definitely bookable.'
+      ? '\nGoogle: adapter works on a near date.'
+      : '\nGoogle: adapter is broken — this date is definitely bookable.'
   );
+
+  // Skyscanner, on the dates that actually matter. Google has no inventory
+  // for these; the question is whether Skyscanner does and whether we can
+  // read it without being blocked.
+  for (const target of [
+    { label: `near date ${soon}`, date: soon },
+    { label: `real trip ${cfg.itineraries[0].out}`, date: cfg.itineraries[0].out },
+  ]) {
+    const ssUrl = skyscannerOneWayUrl(cfg.trip, { from: 'LON', to: 'MCO', date: target.date });
+    console.log(`\n--- Skyscanner, ${target.label} ---`);
+    console.log(ssUrl);
+    const ssPage = await browser.newPage({ locale: cfg.trip.locale });
+    const ss = await skyscanner(ssUrl ? ssPage : ssPage, {
+      url: ssUrl,
+      trip: cfg.trip,
+      passengers: cfg.passengers,
+    });
+    console.log(`status        ${ss.status}`);
+    if (ss.reason) console.log(`reason        ${ss.reason}`);
+    console.log(`offers        ${ss.offers.length}`);
+    for (const o of ss.offers.slice(0, 5)) {
+      console.log(
+        `  £${o.perPersonFare}/person → £${o.fare} party  ${o.carrier ?? '—'}  ${o.durationMin ?? '—'}min`
+      );
+    }
+    if (ss.offers[0]) console.log(`row text      ${ss.offers[0].rawText.slice(0, 200)}`);
+    await ssPage.close();
+  }
+
   await browser.close();
   process.exit(0);
 }
@@ -143,12 +174,30 @@ const historyRows = [];
 for (const s of searches) {
   const page = await context.newPage();
   const directions = s.kind === 'round_trip' ? 2 : 1;
-  const outcome = await googleFlights(page, {
-    url: s.url,
-    trip: cfg.trip,
-    passengers: cfg.passengers,
-    directions,
-  });
+  const providers = [
+    { name: PROVIDER, run: googleFlights, url: s.url },
+    { name: SKYSCANNER, run: skyscanner, url: s.skyscannerUrl },
+  ];
+
+  const attempts = [];
+  for (const p of providers) {
+    if (!p.url) continue;
+    const r = await p.run(page, {
+      url: p.url,
+      trip: cfg.trip,
+      passengers: cfg.passengers,
+      directions,
+    });
+    attempts.push({ provider: p.name, ...r });
+    if (r.html) writeDebugHtml(stamp, `${s.id}-${p.name}`, r.html);
+    await sleep(2000 + Math.random() * 2000);
+  }
+
+  // Prefer whichever provider actually returned offers. Both are kept in the
+  // snapshot so a provider going quiet is visible rather than silently
+  // covered for by the other.
+  const outcome =
+    attempts.find((a) => a.status === 'ok') ?? attempts[0] ?? { status: 'no_provider', offers: [] };
 
   const priced = outcome.offers
     .map((o) => ({
@@ -166,22 +215,28 @@ for (const s of searches) {
     .sort((a, b) => a.trueTotal - b.trueTotal)
     .slice(0, 5); // top 5 keeps history.csv small over 11 months
 
-  results.push({ ...s, status: outcome.status, reason: outcome.reason ?? null, offers: priced });
+  results.push({
+    ...s,
+    status: outcome.status,
+    provider: outcome.provider ?? null,
+    reason: outcome.reason ?? null,
+    attempts: attempts.map((a) => ({ provider: a.provider, status: a.status, reason: a.reason ?? null, offers: a.offers.length })),
+    offers: priced,
+  });
 
   const icon = outcome.status === 'ok' ? '✓' : '·';
   const detail =
     outcome.status === 'ok'
-      ? `${priced.length} offers, best £${priced[0]?.trueTotal ?? '—'}`
+      ? `${outcome.provider} — ${priced.length} offers, best £${priced[0]?.trueTotal ?? '—'}`
       : `${outcome.status}${outcome.reason ? ` — ${outcome.reason}` : ''}`;
   console.log(`  ${icon} ${s.id.padEnd(4)} ${s.label.padEnd(14)} ${detail}`);
-
-  if (outcome.html) writeDebugHtml(stamp, s.id, outcome.html);
 
   if (priced.length === 0) {
     historyRows.push({
       collected_at: collectedAt,
       search_id: s.id,
       signature: s.signature,
+      provider: outcome.provider ?? '',
       kind: s.kind,
       status: outcome.status,
       out_date: s.out ?? s.date ?? '',
@@ -193,6 +248,7 @@ for (const s of searches) {
         collected_at: collectedAt,
         search_id: s.id,
         signature: s.signature,
+        provider: outcome.provider ?? '',
         kind: s.kind,
         status: 'ok',
         out_date: s.out ?? s.date ?? '',
