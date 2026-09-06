@@ -17,18 +17,12 @@
  * Each adapter reports the single carrier it searched, so a price from here is
  * never attributed to the wrong airline: `carrier` is fixed, not inferred.
  *
- * STATUS: THE BOOKING URLS BELOW ARE UNVERIFIED GUESSES AND DO NOT WORK.
- * On the first live run British Airways timed out navigating and Virgin
- * rendered no price. The parameter names here were written from memory, not
- * from a real booking URL — the same mistake this project deliberately avoided
- * with Google's private `tfs` protobuf, where a wrong guess produces a
- * plausible URL that quietly searches for the wrong thing.
+ * BRITISH AIRWAYS: the URL below is REAL, read off an actual search rather
+ * than invented. An earlier guessed URL timed out; this one is the genuine
+ * /nx/b/airselect/ search path with its real parameter names.
  *
- * These adapters are therefore scaffolding, not a working source. Fixing them
- * needs a genuine search URL copied from a browser that has just performed the
- * search, so the real parameter names and date format can be read off rather
- * than invented. The parsing and safety logic below is sound and reusable; it
- * is only `bookingUrl` that is fiction.
+ * VIRGIN ATLANTIC: still a guess, and still marked as such. It rendered no
+ * price on the first run and needs a real search URL before it can be trusted.
  */
 import {
   parseMoney,
@@ -44,24 +38,50 @@ import {
 
 const MIN_PER_PERSON = 50;
 
-/** IATA codes as each airline's own booking form expects them. */
-function bookingUrl(base, { from, to, out, back, trip }) {
+/**
+ * Real British Airways search URL, taken verbatim from a performed search:
+ *
+ *   /nx/b/airselect/en/gbr/book/search/?trip=round&arrivalDate=2027-08-26
+ *   &departureDate=2027-08-12&from=LON&to=MCO&travelClass=economy
+ *   &adults=2&youngAdults=1&children=1&infants=0&bound=outbound
+ *
+ * Note `youngAdults`: BA bands 12-15 separately from adults and children, so
+ * the party is bucketed for BA rather than reusing Google's adult/child split.
+ * Dates are plain ISO, and `from`/`to` take IATA codes including the LON metro
+ * code — so the same two-airport coverage works here.
+ */
+function baSearchUrl(trip, party, { from, to, out, back }) {
   const p = new URLSearchParams({
-    departurePoint: from,
-    destinationPoint: to,
-    departInputDate: out,
-    ad: String(trip.adults),
-    cabin: trip.cabin === 'economy' ? 'M' : 'W',
+    trip: back ? 'round' : 'oneway',
+    departureDate: out,
+    from,
+    to,
+    travelClass: trip.cabin,
+    adults: String(party.ba.adults),
+    youngAdults: String(party.ba.youngAdults),
+    children: String(party.ba.children),
+    infants: String(party.ba.infants),
+    bound: 'outbound',
   });
-  if (back) {
-    p.set('returnInputDate', back);
-    p.set('journeyType', 'RETURN');
-  } else {
-    p.set('journeyType', 'ONEWAY');
-  }
-  const kids = trip.children ?? [];
-  if (kids.length) p.set('ch', String(kids.length));
-  return `${base}?${p}`;
+  if (back) p.set('arrivalDate', back);
+  return `${CARRIERS.ba.search}?${p}`;
+}
+
+/**
+ * Virgin's real search URL is not known yet, so this remains a guess and will
+ * probably fail. Kept so the adapter is wired and ready the moment a genuine
+ * search URL is available, rather than pretending it works.
+ */
+function virginSearchUrl(trip, party, { from, to, out, back }) {
+  const p = new URLSearchParams({
+    origin: from,
+    destination: to,
+    departureDate: out,
+    passengerCount: String(party.total),
+    cabinClass: trip.cabin,
+  });
+  if (back) p.set('returnDate', back);
+  return `${CARRIERS.virgin.search}?${p}`;
 }
 
 const CARRIERS = {
@@ -70,7 +90,8 @@ const CARRIERS = {
     name: 'British Airways',
     // Real homepage, confirmed. The search path beyond it is still unknown.
     home: 'https://www.britishairways.com/travel/home/public/en_gb/',
-    base: 'https://www.britishairways.com/travel/booking/public/en_gb',
+    // Confirmed from a real search.
+    search: 'https://www.britishairways.com/nx/b/airselect/en/gbr/book/search/',
     consent: ['Accept all cookies', 'Accept All Cookies', 'Allow all'],
   },
   virgin: {
@@ -78,7 +99,8 @@ const CARRIERS = {
     name: 'Virgin Atlantic',
     // Real homepage, confirmed. The search path beyond it is still unknown.
     home: 'https://www.virginatlantic.com/en-gb',
-    base: 'https://www.virginatlantic.com/gb/en/book/flights',
+    // Still a guess — no real search URL yet.
+    search: 'https://www.virginatlantic.com/gb/en/book/flights',
     consent: ['Accept All Cookies', 'Accept all', 'I agree'],
   },
 };
@@ -165,9 +187,9 @@ export const PROVIDER_VS = 'virgin_atlantic';
 export const searchBA = makeAdapter('ba');
 export const searchVirgin = makeAdapter('virgin');
 
-export function baUrl(trip, { from, to, out, back }) {
-  return bookingUrl(CARRIERS.ba.base, { from, to, out, back, trip });
+export function baUrl(trip, party, route) {
+  return baSearchUrl(trip, party, route);
 }
-export function virginUrl(trip, { from, to, out, back }) {
-  return bookingUrl(CARRIERS.virgin.base, { from, to, out, back, trip });
+export function virginUrl(trip, party, route) {
+  return virginSearchUrl(trip, party, route);
 }

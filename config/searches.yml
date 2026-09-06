@@ -21,11 +21,16 @@ trip:
   locale: en-GB
   country: GB
 
-  # Ages are AT DATE OF TRAVEL (August 2027), not today.
-  # Airline child fare bands run 2-11 inclusive, so a 12-year-old is an adult.
-  # If a carrier turns out to treat 12 as a child, change to adults: 2, children: [9, 12].
-  adults: 3
-  children: [9]
+  # THE PARTY, BY REAL AGE AT DATE OF TRAVEL (August 2027).
+  #
+  # Ages are stored rather than fare categories, because airlines disagree
+  # about the categories. A real British Airways search URL uses
+  # adults=2&youngAdults=1&children=1 — BA buckets 12 to 15 year olds as
+  # "young adults", where Google has no such category and treats 12 as an
+  # adult. Storing the conclusion would bake one airline's rules into every
+  # provider; storing the ages lets each adapter bucket them its own way.
+  adults: 2                 # the two parents
+  children_ages: [12, 9]    # ages on the outbound date
   infants: 0
 
   cabin: economy          # economy | premium_economy | business | first

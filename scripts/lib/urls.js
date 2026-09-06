@@ -17,6 +17,8 @@
  * multi-city UI and is a later phase.
  */
 
+import { bucketParty } from './config.js';
+
 const BASE = 'https://www.google.com/travel/flights';
 
 function params(trip) {
@@ -34,10 +36,12 @@ function params(trip) {
  * to confirm the number — clicking is now the fallback, not the mechanism.
  */
 function partyPhrase(trip) {
+  const { adults, childAges } = bucketParty(trip).standard;
   const bits = [];
-  if (trip.adults > 0) bits.push(`${trip.adults} adult${trip.adults === 1 ? '' : 's'}`);
-  const kids = trip.children?.length ?? 0;
-  if (kids > 0) bits.push(`${kids} child${kids === 1 ? '' : 'ren'}`);
+  if (adults > 0) bits.push(`${adults} adult${adults === 1 ? '' : 's'}`);
+  if (childAges.length) {
+    bits.push(`${childAges.length} child${childAges.length === 1 ? '' : 'ren'}`);
+  }
   return bits.length ? ` for ${bits.join(' and ')}` : '';
 }
 
@@ -76,8 +80,9 @@ const place = (iata) => (SKYSCANNER_PLACE[iata] ?? iata).toLowerCase();
 const ssDate = (iso) => iso.slice(2, 4) + iso.slice(5, 7) + iso.slice(8, 10);
 
 function skyscannerParams(trip, rtn) {
+  const { adults, childAges } = bucketParty(trip).standard;
   const p = new URLSearchParams({
-    adultsv2: String(trip.adults),
+    adultsv2: String(adults),
     cabinclass: trip.cabin,
     rtn: rtn ? '1' : '0',
     currency: trip.currency,
@@ -85,8 +90,7 @@ function skyscannerParams(trip, rtn) {
     locale: trip.locale,
     preferdirects: 'false',
   });
-  const kids = trip.children ?? [];
-  if (kids.length) p.set('childrenv2', kids.join('|'));
+  if (childAges.length) p.set('childrenv2', childAges.join('|'));
   return p;
 }
 

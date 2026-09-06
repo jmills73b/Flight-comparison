@@ -135,12 +135,48 @@ function buildTuiSearches(tui, outbound, returns) {
   return searches;
 }
 
+/**
+ * Buckets the party by each provider's own rules.
+ *
+ * Airlines disagree about where childhood ends. A real BA search URL uses
+ * adults=2&youngAdults=1&children=1 for this family, bucketing 12-15 as
+ * "young adults"; Google has no such category and counts 12 as an adult.
+ * Storing ages and bucketing per provider keeps both correct, where storing
+ * one conclusion would silently misprice on the other.
+ */
+export function bucketParty(trip) {
+  const ages = [...(trip.children_ages ?? [])].sort((a, b) => b - a);
+  const youngAdults = ages.filter((a) => a >= 12 && a <= 15);
+  const children = ages.filter((a) => a >= 2 && a <= 11);
+  const infants = ages.filter((a) => a < 2);
+  const unaccounted = ages.filter((a) => a > 15);
+
+  return {
+    // BA and other carriers with a young-adult band.
+    ba: {
+      adults: trip.adults + unaccounted.length,
+      youngAdults: youngAdults.length,
+      children: children.length,
+      infants: infants.length,
+    },
+    // Google, Skyscanner and anything else with only adult/child/infant:
+    // a young adult is an adult.
+    standard: {
+      adults: trip.adults + unaccounted.length + youngAdults.length,
+      childAges: children,
+      infants: infants.length,
+    },
+    total: trip.adults + ages.length,
+  };
+}
+
 export function loadConfig() {
   const searches = readYaml('config/searches.yml');
   const fees = readYaml('config/carrier-fees.yml');
   const trip = searches.trip;
 
-  const passengers = trip.adults + (trip.children?.length ?? 0);
+  const party = bucketParty(trip);
+  const passengers = party.total;
   if (passengers < 1) throw new Error('Trip has no passengers');
   if (trip.checked_bags > passengers) {
     throw new Error(
@@ -156,6 +192,7 @@ export function loadConfig() {
 
   return {
     trip,
+    party,
     passengers,
     itineraries,
     legs,

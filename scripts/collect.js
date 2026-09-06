@@ -40,7 +40,9 @@ if (only) searches = searches.filter((s) => s.id === only);
 if (flag('--urls')) {
   console.log(`\n${searches.length} searches for ${cfg.trip.name}`);
   console.log(
-    `${cfg.trip.adults} adults + ${cfg.trip.children.length} child, ` +
+    `${cfg.party.total} passengers (BA: ${cfg.party.ba.adults}a/${cfg.party.ba.youngAdults}ya/` +
+      `${cfg.party.ba.children}c · others: ${cfg.party.standard.adults}a/` +
+      `${cfg.party.standard.childAges.length}c), ` +
       `${cfg.trip.checked_bags} hold bags, ${cfg.trip.cabin}\n`
   );
   for (const s of searches) {
@@ -93,7 +95,7 @@ if (flag('--probe')) {
   // number this tool produces. Run the identical search as a single adult and
   // compare: roughly 4x means the figures above are party totals.
   if (out.status === 'ok' && cfg.passengers > 1) {
-    const soloTrip = { ...cfg.trip, adults: 1, children: [] };
+    const soloTrip = { ...cfg.trip, adults: 1, children_ages: [] };
     const soloPage = await browser.newPage({ locale: cfg.trip.locale });
     const solo = await googleFlights(soloPage, {
       url: oneWayUrl(soloTrip, { from: 'LON', to: 'MCO', date: soon }),
@@ -203,8 +205,8 @@ for (const s of searches) {
   const routeArgs = { from: s.from, to: s.to, out: s.out ?? s.date, back: s.back ?? null };
 
   const providers = [
-    { name: PROVIDER_BA, run: searchBA, url: baUrl(cfg.trip, routeArgs) },
-    { name: PROVIDER_VS, run: searchVirgin, url: virginUrl(cfg.trip, routeArgs) },
+    { name: PROVIDER_BA, run: searchBA, url: baUrl(cfg.trip, cfg.party, routeArgs) },
+    { name: PROVIDER_VS, run: searchVirgin, url: virginUrl(cfg.trip, cfg.party, routeArgs) },
     { name: PROVIDER, run: googleFlights, url: s.url },
     { name: SKYSCANNER, run: skyscanner, url: s.skyscannerUrl },
   ];
