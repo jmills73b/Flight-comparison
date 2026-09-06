@@ -35,6 +35,7 @@ const AIRLINE_CODES = [
 ];
 
 export const PROVIDER = 'skyscanner';
+export const PROVIDER_LABEL = 'Skyscanner';
 
 export async function search(page, { url, trip, passengers, timeoutMs = 60000 }) {
   const started = Date.now();

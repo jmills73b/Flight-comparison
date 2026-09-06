@@ -38,6 +38,7 @@ function bestFor(signature, collectedAt) {
     num(a.true_total) <= num(b.true_total) ? a : b
   );
   return {
+    provider: best.provider || null,
     fare: num(best.fare),
     bagCost: num(best.bag_cost),
     trueTotal: num(best.true_total),
@@ -122,6 +123,7 @@ for (const sig of [...new Set(rows.map((r) => r.signature))]) {
   const last = matching.at(-1);
   searchStatus[last?.search_id ?? sig] = {
     signature: sig,
+    provider: last?.provider || null,
     status: last?.status ?? 'unknown',
     at: last?.collected_at ?? null,
     retired: !currentSignatures.has(sig),

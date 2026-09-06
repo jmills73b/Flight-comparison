@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-06T13:18:33.756Z",
+  "generated_at": "2026-09-06T13:28:43.271Z",
   "trip": {
     "name": "Florida 2027",
     "adults": 3,
@@ -252,66 +252,77 @@
   "searchStatus": {
     "A1": {
       "signature": "2027-08-11|LON>MCO|MCO>LON|2027-08-19",
+      "provider": "google_flights",
       "status": "no_prices_rendered",
       "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "A3": {
       "signature": "2027-08-11|LON>TPA|TPA>LON|2027-08-19",
+      "provider": "google_flights",
       "status": "no_prices_rendered",
       "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "A5": {
       "signature": "2027-08-12|LON>MCO|MCO>LON|2027-08-19",
+      "provider": "google_flights",
       "status": "no_prices_rendered",
       "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "A7": {
       "signature": "2027-08-12|LON>TPA|TPA>LON|2027-08-19",
+      "provider": "google_flights",
       "status": "no_prices_rendered",
       "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "O1": {
       "signature": "2027-08-11|LON>MCO",
+      "provider": "google_flights",
       "status": "no_prices_rendered",
       "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "O2": {
       "signature": "2027-08-11|LON>TPA",
+      "provider": "google_flights",
       "status": "no_prices_rendered",
       "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "O3": {
       "signature": "2027-08-12|LON>MCO",
+      "provider": "google_flights",
       "status": "no_prices_rendered",
       "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "O4": {
       "signature": "2027-08-12|LON>TPA",
+      "provider": "google_flights",
       "status": "no_prices_rendered",
       "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "R1": {
       "signature": "2027-08-19|MCO>LON",
+      "provider": "google_flights",
       "status": "no_prices_rendered",
       "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "R2": {
       "signature": "2027-08-19|TPA>LON",
+      "provider": "google_flights",
       "status": "no_prices_rendered",
       "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "R3": {
       "signature": "2027-08-22|MIA>LON",
+      "provider": "google_flights",
       "status": "no_offers_parsed",
       "at": "2026-09-06T11:39:13.291Z",
       "retired": false

@@ -10,6 +10,20 @@ import {
 } from './lib/store.js';
 import { search as googleFlights, PROVIDER } from './providers/google-flights.js';
 import { search as skyscanner, PROVIDER as SKYSCANNER } from './providers/skyscanner.js';
+import {
+  searchBA, searchVirgin, baUrl, virginUrl,
+  PROVIDER_BA, PROVIDER_VS,
+} from './providers/airline-direct.js';
+
+// Every source, in preference order. Direct airline sites rank above
+// aggregators: they are authoritative for their own fares and baggage rules.
+// The order only decides which offer is shown; all outcomes are recorded.
+export const SOURCE_LABELS = {
+  [PROVIDER_BA]: 'British Airways (direct)',
+  [PROVIDER_VS]: 'Virgin Atlantic (direct)',
+  [PROVIDER]: 'Google Flights',
+  [SKYSCANNER]: 'Skyscanner',
+};
 
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
@@ -174,7 +188,11 @@ const historyRows = [];
 for (const s of searches) {
   const page = await context.newPage();
   const directions = s.kind === 'round_trip' ? 2 : 1;
+  const routeArgs = { from: s.from, to: s.to, out: s.out ?? s.date, back: s.back ?? null };
+
   const providers = [
+    { name: PROVIDER_BA, run: searchBA, url: baUrl(cfg.trip, routeArgs) },
+    { name: PROVIDER_VS, run: searchVirgin, url: virginUrl(cfg.trip, routeArgs) },
     { name: PROVIDER, run: googleFlights, url: s.url },
     { name: SKYSCANNER, run: skyscanner, url: s.skyscannerUrl },
   ];

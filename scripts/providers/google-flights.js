@@ -8,33 +8,10 @@
  * the failure rather than a number.
  */
 
-/**
- * Longest names first, matched on word boundaries. Bare "United" and
- * "American" are deliberately absent: the first run's page contained "United
- * Kingdom", "United States" and "United Arab Emirates" 23 times between them,
- * and a looser matcher would have stamped those offers as United Airlines.
- */
-const AIRLINE_CODES = [
-  ['Norse Atlantic Airways', 'N0'],
-  ['Norse Atlantic', 'N0'],
-  ['American Airlines', 'AA'],
-  ['United Airlines', 'UA'],
-  ['Delta Air Lines', 'DL'],
-  ['British Airways', 'BA'],
-  ['Virgin Atlantic', 'VS'],
-  ['Aer Lingus', 'EI'],
-  ['Air France', 'AF'],
-  ['TUI Airways', 'TOM'],
-  ['Icelandair', 'FI'],
-  ['Lufthansa', 'LH'],
-  ['JetBlue', 'B6'],
-  ['Finnair', 'AY'],
-  ['Iberia', 'IB'],
-  ['Delta', 'DL'],
-  ['KLM', 'KL'],
-];
+import { parseStops, matchCarrier } from './shared.js';
 
 export const PROVIDER = 'google_flights';
+export const PROVIDER_LABEL = 'Google Flights';
 
 export async function search(page, { url, trip, passengers, directions = 1, timeoutMs = 45000 }) {
   const started = Date.now();
@@ -263,19 +240,11 @@ export function parseRow(row, minPlausibleFare = 0) {
     ? Number(duration[1]) * 60 + Number(duration[2] ?? 0)
     : null;
 
-  const stops = /nonstop|direct/i.test(text)
-    ? 0
-    : (text.match(/(\d+)\s*stop/i) ? Number(text.match(/(\d+)\s*stop/i)[1]) : null);
+  // Google writes "Non-stop" with a hyphen, which an earlier /nonstop/ test
+  // missed, leaving stops null on every direct flight.
+  const stops = parseStops(text);
 
-  let carrier = null;
-  let carrierName = null;
-  for (const [name, code] of AIRLINE_CODES) {
-    if (new RegExp(`\\b${name}\\b`, 'i').test(text)) {
-      carrier = code;
-      carrierName = name;
-      break;
-    }
-  }
+  const { carrier, carrierName } = matchCarrier(text);
 
   // A price on its own is not a flight. The first live run proved this the
   // expensive way: a stray "£28" elsewhere on the page was recorded as a
@@ -291,6 +260,7 @@ export function parseRow(row, minPlausibleFare = 0) {
 
   return {
     fare,
+    priceBasis: 'party_total',
     carrier,
     carrierName,
     fareBrand: null, // q= results do not expose a fare brand; see carrier-fees.yml

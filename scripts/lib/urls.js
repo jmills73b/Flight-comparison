@@ -119,6 +119,8 @@ export function plannedSearches({ trip, itineraries, legs }) {
       id: it.id,
       signature: it.signature,
       label: `${it.origin} ⇄ ${it.into}`,
+      from: it.origin,
+      to: it.into,
       out: it.out,
       back: it.back,
       url: roundTripUrl(trip, {
@@ -142,6 +144,8 @@ export function plannedSearches({ trip, itineraries, legs }) {
       id: leg.id,
       signature: leg.signature,
       label: `${leg.from} → ${leg.to}`,
+      from: leg.from,
+      to: leg.to,
       date: leg.date,
       url: oneWayUrl(trip, { from: leg.from, to: leg.to, date: leg.date }),
       skyscannerUrl: skyscannerOneWayUrl(trip, {

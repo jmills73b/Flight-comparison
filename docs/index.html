@@ -98,6 +98,16 @@
 
 <script>
 const $ = (id) => document.getElementById(id);
+// Mirrors SOURCE_LABELS in scripts/collect.js. Every price on this page says
+// where it came from — an aggregator and an airline's own site are not
+// equally authoritative, and a fare with no stated source is not checkable.
+const SOURCES = {
+  british_airways: 'British Airways (direct)',
+  virgin_atlantic: 'Virgin Atlantic (direct)',
+  google_flights:  'Google Flights',
+  skyscanner:      'Skyscanner',
+};
+const sourceLabel = (p) => SOURCES[p] || p || 'unknown source';
 const money = (n) => n == null ? '—' : '£' + n.toLocaleString('en-GB', {maximumFractionDigits: 0});
 const when = (iso) => iso ? new Date(iso).toLocaleString('en-GB', {dateStyle:'medium', timeStyle:'short'}) : 'never';
 
@@ -142,7 +152,9 @@ function render(d) {
     const b = d.best;
     const delta = b.changeSinceFirst;
     html += '<div class="headline">' +
-      tile('Best now', money(b.current), b.id + ' · ' + b.into + ' in, ' + b.homeFrom + ' out', true) +
+      tile('Best now', money(b.current),
+           b.id + ' · ' + b.into + ' in, ' + b.homeFrom + ' out' +
+           (b.detail?.provider ? ' · via ' + sourceLabel(b.detail.provider) : ''), true) +
       tile('Ticket structure', b.mode === 'single_ticket' ? 'One ticket' : 'Two one-ways', b.nights + ' nights') +
       tile('Since first seen', delta == null ? '—' : (delta >= 0 ? '+' : '') + money(delta),
            b.firstSeen ? 'first seen ' + when(b.firstSeen.at) : '') +
@@ -152,14 +164,15 @@ function render(d) {
     html += '<h2>All itineraries</h2><div class="rule"></div><div class="scroll"><table>' +
       '<thead><tr><th>ID</th><th>Route</th><th>Dates</th><th class="num">Nights</th>' +
       '<th class="num">One ticket</th><th class="num">Two one-ways</th>' +
-      '<th class="num">Best</th><th>Carrier</th></tr></thead><tbody>' +
+      '<th class="num">Best</th><th>Carrier</th><th>Source</th></tr></thead><tbody>' +
       d.itineraries.map(rowFor).join('') + '</tbody></table></div>';
   }
 
   html += '<h2>Search status</h2><div class="rule"></div><div class="scroll"><table>' +
-    '<thead><tr><th>Search</th><th>Last status</th><th>When</th></tr></thead><tbody>' +
+    '<thead><tr><th>Search</th><th>Source</th><th>Last status</th><th>When</th></tr></thead><tbody>' +
     Object.entries(d.searchStatus).map(([id, s]) =>
       '<tr><td class="id">' + id + (s.retired ? ' <span class="tag">retired</span>' : '') +
+      '</td><td class="mono">' + sourceLabel(s.provider) +
       '</td><td>' + statusTag(s.status) +
       '</td><td class="mono">' + when(s.at) + '</td></tr>').join('') +
     '</tbody></table></div>';
@@ -170,6 +183,13 @@ function render(d) {
       'where the change was made — a different return date is a different trip, and the ' +
       'prices are not comparable.</div>';
   }
+
+  html += '<div class="note"><strong>Sources.</strong> Four are checked for every ' +
+    'search: British Airways and Virgin Atlantic directly, plus Google Flights and ' +
+    'Skyscanner. Airline sites rank first, being authoritative for their own fares ' +
+    'and baggage rules. Google quotes a whole-party total; the other three quote ' +
+    'per person and are multiplied up, so every figure here is the total for all ' +
+    'passengers. The Source column says which one each price came from.</div>';
 
   if (d.carHire && !d.carHire.apply) {
     html += '<div class="note"><strong>Shape B excludes car hire.</strong> Flying home from ' +
@@ -199,6 +219,7 @@ function rowFor(i) {
     '<td class="num mono"><strong>' + money(i.current) + '</strong>' +
       (i.current != null ? ' <span class="tag ok">' + (cheapestIsSplit ? 'split' : 'single') + '</span>' : '') + '</td>' +
     '<td class="mono">' + (i.detail?.carrier ?? i.detail?.outCarrier ?? '—') + '</td>' +
+    '<td class="mono">' + (i.detail?.provider ? sourceLabel(i.detail.provider) : '—') + '</td>' +
     '</tr>';
 }
 
