@@ -97,9 +97,20 @@ viable route**. That single fact drives the platform choice in §4.
 
 ### Chosen sources
 
-**Primary — Google Flights via Playwright.** Handles multi-city/open-jaw natively,
-prices the exact passenger mix, exposes carrier, flight numbers, times, aircraft,
-stops and fare brand. Best single source by a distance.
+**Primary — Google Flights via Playwright.** Prices the exact passenger mix and
+exposes carrier, times, stops and duration. Best single source by a distance.
+
+> **How the search URL is built.** Google packs a whole search into a `tfs`
+> parameter — a base64url protobuf whose schema is private and reverse-engineered.
+> Building that by hand would be more precise, but a wrong field number produces a
+> valid-looking URL that quietly searches for *something else*, which is the worst
+> possible failure for a price tracker. So the adapter uses Google's `q=` form
+> instead: readable, and checkable by pasting it into a browser (`npm run urls`).
+>
+> The one thing `q=` cannot express is a multi-city open jaw. That costs nothing
+> today, because the seven one-way legs already price all twelve itineraries as
+> split tickets. Single-ticket pricing for the eight open jaws needs the
+> multi-city UI, and is phase 3.
 
 **Secondary — direct airline sites.** For LON→TPA/MCO the realistic field is
 British Airways, Virgin Atlantic and Norse Atlantic. Direct scrapes are more
@@ -182,29 +193,41 @@ Two constraints worth recording:
 
 ## 5. Repository layout
 
+Plain ES-module JavaScript, no build step: CI runs `node scripts/collect.js`
+directly. Two dependencies only — `playwright` and `yaml`.
+
 ```
 .github/workflows/
-  track.yml            # cron 2×/day + manual dispatch
-  pages.yml            # publish docs/ to GitHub Pages
+  track.yml              # cron 2×/day + manual dispatch, commits results back
+  pages.yml              # publishes docs/ to GitHub Pages
 config/
-  searches.yml         # the tracked itinerary matrix (§6)
-  carrier-fees.yml     # curated baggage/ancillary costs (§7)
+  searches.yml           # the trip, the 12 itineraries, 7 legs, 6 TUI searches
+  carrier-fees.yml       # curated baggage costs — hand-maintained
 scripts/
-  collect.ts           # orchestrator
+  collect.js             # orchestrator; --urls prints URLs, --only runs one
+  build-site.js          # history.csv -> docs/data.json
+  lib/
+    config.js            # load + validate; fails loudly on a broken matrix
+    urls.js              # Google Flights search URLs
+    pricing.js           # true_total, split-ticket composition
+    store.js             # snapshots, history.csv, debug HTML
   providers/
-    google-flights.ts  # primary adapter
-    ba.ts              # (phase 6)
-    virgin.ts          # (phase 6)
-  normalise.ts         # provider payload -> canonical Offer
-  append-history.ts    # canonical Offer -> history.csv
+    google-flights.js    # the scraper
 data/
-  snapshots/YYYY-MM-DD-HHmm.json   # raw, one per run
-  history.csv                      # append-only time series
+  snapshots/*.json.gz    # one per run, gzipped
+  debug/*.html.gz        # raw HTML, kept only when a parse failed
+  history.csv            # append-only time series
 docs/
-  index.html           # dashboard
-  data.json            # dashboard feed, regenerated each run
-DESIGN.md
-README.md
+  index.html             # dashboard
+  data.json              # dashboard feed, rebuilt each run
+```
+
+### Two commands worth knowing
+
+```
+npm run urls     # print every search URL — paste one in a browser to check it
+npm run collect  # do a full run locally
+node scripts/collect.js --only O1   # run a single search
 ```
 
 ---
@@ -490,19 +513,38 @@ and Shape B are compared honestly, on total trip cost rather than airfare alone.
 
 ## 11. Build phases
 
-| Phase | Deliverable |
-|---|---|
-| 0 | **This document** |
-| 1 | Scaffold: `track.yml`, `searches.yml`, Playwright harness, commit-back loop |
-| 2 | Google Flights adapter for a single search; verify data quality by hand |
-| 3 | Expand to all 12 itineraries + the 7 shared one-way legs |
-| 4 | **TUI adapter** — confirm route map, then LGW charter searches |
-| 5 | Pages dashboard with charts and comparison matrix |
-| 6 | Price-drop alerting via GitHub issue |
-| 7 | Optional direct adapters: BA, Virgin, Norse |
+| Phase | Deliverable | Status |
+|---|---|---|
+| 0 | This document | **done** |
+| 1 | Scaffold: workflows, config, harness, commit-back loop | **done** |
+| 2 | Google Flights adapter + `true_total` + split-ticket composition | **built, unverified** |
+| 3 | Multi-city UI path — single-ticket pricing for the 8 open jaws | next |
+| 4 | TUI adapter — confirm route map, then the 6 Gatwick searches | |
+| 5 | Dashboard charts: price over time, comparison matrix | |
+| 6 | Price-drop alerting via GitHub issue | |
+| 7 | Optional direct adapters: BA, Virgin, Norse | |
 
-Phases 1–2 are the risky part: everything after depends on whether the Google
-Flights scrape proves stable. Worth proving before building anything on top.
+**Phase 2 is built but not verified against the live site.** It could not be:
+the development sandbox's egress proxy blocks google.com, and the fares are only
+now going on sale. The first real Actions run is the test. Until then the
+scraper's selectors are an informed guess, which is why every extraction step
+either confirms itself or fails the search — see below.
+
+### Failing loudly
+
+A wrong price is far worse than no price: a tracker that silently recorded a
+one-adult fare as the family total would send you to book at the wrong moment.
+So the adapter never guesses:
+
+- Party size is **read back** from the passenger control after being set. If it
+  does not match, the search fails rather than recording the fare.
+- A run where *no* search returned an offer exits non-zero, so a broken scraper
+  surfaces as a failed job instead of quietly committing nothing.
+- Failures are distinguished in the data — `not_on_sale`, `blocked`,
+  `no_offers_parsed`, `passenger_setup_failed` — so "no fares yet" never looks
+  like "scraper broken", and the dashboard shows which is which.
+- On a parse failure the raw HTML is committed to `data/debug/`, gzipped, so the
+  break can be diagnosed after the fact.
 
 ---
 

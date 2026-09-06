@@ -1,0 +1,76 @@
+name: Track fares
+
+on:
+  schedule:
+    # 07:17 and 19:17 UTC. Deliberately off the hour: GitHub delays runs
+    # scheduled at :00 heavily, because everyone schedules them there.
+    - cron: '17 7,19 * * *'
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'Run a single search id (e.g. O1). Leave blank for all.'
+        required: false
+        type: string
+
+# Never let two runs write to the repository at once.
+concurrency:
+  group: track-fares
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Collect fares
+        id: collect
+        continue-on-error: true
+        run: |
+          if [ -n "${{ inputs.only }}" ]; then
+            node scripts/collect.js --only "${{ inputs.only }}"
+          else
+            node scripts/collect.js
+          fi
+
+      - name: Rebuild dashboard data
+        if: always()
+        run: node scripts/build-site.js
+
+      # Committed even when collection failed: a recorded failure is data, and
+      # the daily commit is also what stops GitHub disabling this schedule
+      # after 60 days of inactivity.
+      - name: Commit results
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data docs/data.json
+          if git diff --staged --quiet; then
+            echo "No change to commit."
+          else
+            git commit -m "Fare snapshot $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
+
+      - name: Fail if collection failed
+        if: steps.collect.outcome == 'failure'
+        run: |
+          echo "Collection failed — see the 'Collect fares' step above."
+          echo "Raw HTML for failed searches is committed under data/debug/."
+          exit 1

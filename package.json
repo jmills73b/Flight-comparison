@@ -1,0 +1,20 @@
+{
+  "name": "florida-2027-fare-watch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Price tracker for one London to Florida holiday, August 2027",
+  "scripts": {
+    "urls": "node scripts/collect.js --urls",
+    "collect": "node scripts/collect.js",
+    "collect:one": "node scripts/collect.js --only",
+    "build:site": "node scripts/build-site.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "playwright": "1.49.1",
+    "yaml": "2.6.1"
+  }
+}

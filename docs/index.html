@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Florida 2027 Fare Watch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root {
+    --bg:#F0F3F2; --surface:#FFFFFF; --surface-2:#E7ECEA;
+    --ink:#12201E; --ink-2:#4C5D5A; --ink-3:#748682;
+    --rule:#D0D9D7; --rule-soft:#E1E8E6;
+    --accent:#0C6A66; --accent-sf:#DCEBE9;
+    --magenta:#A81563; --magenta-sf:#F7E2EC;
+    --amber:#8C5A14; --amber-sf:#F5E9D6;
+    --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+    --body:"Source Serif 4",Georgia,serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0D1614; --surface:#152220; --surface-2:#1D2C29;
+      --ink:#E3EBE9; --ink-2:#A0B2AE; --ink-3:#7A8D89;
+      --rule:#283835; --rule-soft:#1F2E2B;
+      --accent:#4FC9BF; --accent-sf:#10322F;
+      --magenta:#F074AC; --magenta-sf:#3A1329;
+      --amber:#D6A05C; --amber-sf:#33260F;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+       font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .page{max-width:1080px;margin:0 auto;padding:40px 24px 80px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+           text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,46px);
+     letter-spacing:-.025em;line-height:1.05;margin:0 0 14px}
+  .sub{color:var(--ink-2);margin:0 0 28px;max-width:60ch}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--mono);
+        font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+        color:var(--ink-3);border-top:1px solid var(--rule);padding-top:16px}
+  .headline{border:1px solid var(--rule);background:var(--surface);
+            padding:24px;margin:32px 0;display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:24px}
+  .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+     text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+  .v{font-family:var(--display);font-weight:700;font-size:32px;line-height:1;
+     letter-spacing:-.03em}
+  .v.accent{color:var(--accent)}
+  .u{font-size:13px;color:var(--ink-2);margin-top:6px}
+  h2{font-family:var(--display);font-weight:600;font-size:22px;
+     letter-spacing:-.015em;margin:44px 0 4px}
+  .rule{width:40px;height:3px;background:var(--accent);margin-bottom:18px}
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:14px;
+        font-variant-numeric:tabular-nums}
+  th{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;
+     text-transform:uppercase;color:var(--ink-3);text-align:left;
+     padding:0 14px 8px 0;border-bottom:1px solid var(--ink);white-space:nowrap}
+  td{padding:10px 14px 10px 0;border-bottom:1px solid var(--rule-soft)}
+  th.num,td.num{text-align:right;padding-right:18px}
+  .id,.mono{font-family:var(--mono);font-size:12.5px;font-weight:500}
+  .stripe{border-left:3px solid var(--accent);padding-left:12px}
+  .stripe.b{border-left-color:var(--magenta)}
+  th:first-child{padding-left:15px}
+  .tag{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:600;
+       letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:2px;
+       background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+  .tag.ok{background:var(--accent-sf);color:var(--accent)}
+  .tag.wait{background:var(--amber-sf);color:var(--amber)}
+  .tag.bad{background:var(--magenta-sf);color:var(--magenta)}
+  .empty{border:1px solid var(--rule);background:var(--surface);padding:28px;
+         margin:32px 0;max-width:66ch}
+  .empty h3{font-family:var(--display);font-size:16px;margin:0 0 10px}
+  .empty p{margin:0 0 10px;color:var(--ink-2)}
+  .empty p:last-child{margin:0}
+  .note{border-left:3px solid var(--amber);background:var(--amber-sf);
+        padding:16px 20px;margin:28px 0;max-width:66ch;font-size:15px}
+  footer{margin-top:64px;padding-top:18px;border-top:2px solid var(--ink);
+         font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+         text-transform:uppercase;color:var(--ink-3)}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="page">
+  <p class="eyebrow">London → Florida · August 2027</p>
+  <h1>Florida 2027 Fare Watch</h1>
+  <p class="sub" id="sub">Loading…</p>
+  <div class="meta" id="meta"></div>
+
+  <div id="content"></div>
+
+  <footer>jmills73b/Flight-comparison · rebuilt from data/history.csv</footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const money = (n) => n == null ? '—' : '£' + n.toLocaleString('en-GB', {maximumFractionDigits: 0});
+const when = (iso) => iso ? new Date(iso).toLocaleString('en-GB', {dateStyle:'medium', timeStyle:'short'}) : 'never';
+
+fetch('data.json?' + Date.now())
+  .then(r => r.ok ? r.json() : Promise.reject(new Error('data.json not found')))
+  .then(render)
+  .catch(() => {
+    $('sub').textContent = 'No data collected yet.';
+    $('content').innerHTML = emptyState(
+      'Nothing collected yet',
+      ['The tracker has not completed a run, or <code>data.json</code> has not been published.',
+       'It runs twice a day at 07:17 and 19:17 UTC. You can also trigger it by hand from the Actions tab.']
+    );
+  });
+
+function emptyState(title, paras) {
+  return '<div class="empty"><h3>' + title + '</h3>' +
+    paras.map(p => '<p>' + p + '</p>').join('') + '</div>';
+}
+
+function render(d) {
+  const pax = d.trip.adults + ' adults + ' + d.trip.children.length + ' child';
+  $('sub').textContent =
+    pax + ', ' + d.trip.checkedBags + ' hold bags, ' + d.trip.cabin +
+    '. Ranked on true total — fare plus the cost of a checked bag each.';
+
+  $('meta').innerHTML = [
+    'Last collected ' + when(d.lastCollected),
+    d.runCount + ' runs',
+    'Generated ' + when(d.generated_at)
+  ].map(s => '<span>' + s + '</span>').join('');
+
+  const priced = d.itineraries.filter(i => i.current != null);
+  let html = '';
+
+  if (priced.length === 0) {
+    html += emptyState('No fares on sale yet', [
+      'None of the tracked itineraries has returned a price. For August 2027 that is the expected state right now — airlines load schedules 330–355 days ahead, and these dates are only just crossing that boundary.',
+      'The 22 August Miami return is the last to open, expected late September 2026. Search status is listed below.'
+    ]);
+  } else {
+    const b = d.best;
+    const delta = b.changeSinceFirst;
+    html += '<div class="headline">' +
+      tile('Best now', money(b.current), b.id + ' · ' + b.into + ' in, ' + b.homeFrom + ' out', true) +
+      tile('Ticket structure', b.mode === 'single_ticket' ? 'One ticket' : 'Two one-ways', b.nights + ' nights') +
+      tile('Since first seen', delta == null ? '—' : (delta >= 0 ? '+' : '') + money(delta),
+           b.firstSeen ? 'first seen ' + when(b.firstSeen.at) : '') +
+      tile('Itineraries priced', priced.length + '/' + d.itineraries.length, 'of the tracked set') +
+      '</div>';
+
+    html += '<h2>All itineraries</h2><div class="rule"></div><div class="scroll"><table>' +
+      '<thead><tr><th>ID</th><th>Route</th><th>Dates</th><th class="num">Nights</th>' +
+      '<th class="num">One ticket</th><th class="num">Two one-ways</th>' +
+      '<th class="num">Best</th><th>Carrier</th></tr></thead><tbody>' +
+      d.itineraries.map(rowFor).join('') + '</tbody></table></div>';
+  }
+
+  html += '<h2>Search status</h2><div class="rule"></div><div class="scroll"><table>' +
+    '<thead><tr><th>Search</th><th>Last status</th><th>When</th></tr></thead><tbody>' +
+    Object.entries(d.searchStatus).map(([id, s]) =>
+      '<tr><td class="id">' + id + '</td><td>' + statusTag(s.status) +
+      '</td><td class="mono">' + when(s.at) + '</td></tr>').join('') +
+    '</tbody></table></div>';
+
+  if (d.carHire && !d.carHire.apply) {
+    html += '<div class="note"><strong>Shape B excludes car hire.</strong> Flying home from ' +
+      'Miami means a one-way drop-off fee, estimated £' + d.carHire.estimate_gbp +
+      ', which is not included in the totals above. Get a real quote before treating ' +
+      'a Shape B saving as real.</div>';
+  }
+
+  $('content').innerHTML = html;
+}
+
+function tile(k, v, u, accent) {
+  return '<div><div class="k">' + k + '</div><div class="v' + (accent ? ' accent' : '') +
+    '">' + v + '</div>' + (u ? '<div class="u">' + u + '</div>' : '') + '</div>';
+}
+
+function rowFor(i) {
+  const route = i.origin + ' → ' + i.into + (i.into === i.homeFrom ? '' : ' · ' + i.homeFrom) + ' → ' + i.origin;
+  const cheapestIsSplit = i.mode === 'two_one_ways';
+  return '<tr>' +
+    '<td class="id stripe' + (i.shape === 'B' ? ' b' : '') + '">' + i.id + '</td>' +
+    '<td class="mono">' + route + '</td>' +
+    '<td class="mono">' + i.out.slice(5) + ' → ' + i.back.slice(5) + '</td>' +
+    '<td class="num mono">' + i.nights + '</td>' +
+    '<td class="num mono">' + (i.isRoundTrip ? money(i.singleTicket) : '<span class="tag">n/a</span>') + '</td>' +
+    '<td class="num mono">' + money(i.splitTicket) + '</td>' +
+    '<td class="num mono"><strong>' + money(i.current) + '</strong>' +
+      (i.current != null ? ' <span class="tag ok">' + (cheapestIsSplit ? 'split' : 'single') + '</span>' : '') + '</td>' +
+    '<td class="mono">' + (i.detail?.carrier ?? i.detail?.outCarrier ?? '—') + '</td>' +
+    '</tr>';
+}
+
+function statusTag(s) {
+  if (s === 'ok') return '<span class="tag ok">ok</span>';
+  if (s === 'not_on_sale') return '<span class="tag wait">not on sale</span>';
+  if (s === 'blocked') return '<span class="tag bad">blocked</span>';
+  return '<span class="tag bad">' + String(s).replace(/_/g, ' ') + '</span>';
+}
+</script>
+</body>
+</html>

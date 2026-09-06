@@ -1,0 +1,115 @@
+# Hold luggage costs, curated by hand.
+#
+# WHY THIS FILE EXISTS
+# A headline fare is not comparable across carriers, because a checked bag is
+# included on some fares and not others. No free source exposes fare-family
+# baggage rules reliably, so the tracker computes:
+#
+#   true_total = fare + cost of topping up to one checked bag per passenger
+#
+# and every ranking sorts on that, never on the headline fare.
+#
+# HOW TO MAINTAIN
+# These prices move. Check them against the airline's own baggage page a
+# couple of times a year, and always before actually booking. `checked_at`
+# records when each entry was last verified; the dashboard flags anything
+# older than 180 days as stale.
+
+# Applied when the carrier is not listed below, or its fare brand is unknown.
+# Deliberately pessimistic: assume a bag is NOT included, so an unknown
+# carrier is never flattered into looking cheaper than it is.
+fallback:
+  bags_included_per_passenger: 0
+  extra_bag_gbp_each_way: 75
+  confidence: low
+
+carriers:
+  BA:
+    name: British Airways
+    bags_included_per_passenger: 1
+    # Fare brands sold WITHOUT a checked bag. If the scraped brand matches one
+    # of these, the tracker treats included bags as 0 for that offer.
+    hand_baggage_only_brands: ["Basic", "Economy Basic", "Basic Economy"]
+    extra_bag_gbp_each_way: 65
+    checked_at: 2026-09-06
+    confidence: medium
+    notes: >-
+      One checked bag is normally included in transatlantic economy, but not on
+      the Basic brand, which is sold on exactly these routes.
+
+  VS:
+    name: Virgin Atlantic
+    bags_included_per_passenger: 1
+    hand_baggage_only_brands: ["Economy Light"]
+    extra_bag_gbp_each_way: 65
+    checked_at: 2026-09-06
+    confidence: medium
+    notes: >-
+      Economy Light is hand baggage only. Economy Classic and Delight include
+      one bag.
+
+  N0:
+    name: Norse Atlantic
+    bags_included_per_passenger: 0
+    hand_baggage_only_brands: []
+    extra_bag_gbp_each_way: 85
+    checked_at: 2026-09-06
+    confidence: low
+    notes: >-
+      Low-cost long haul. Nothing is included on the cheapest fare, so the
+      headline price is the most misleading of any carrier on this route.
+
+  TOM:
+    name: TUI Airways
+    bags_included_per_passenger: 1
+    hand_baggage_only_brands: []
+    extra_bag_gbp_each_way: 60
+    checked_at: 2026-09-06
+    confidence: low
+    notes: >-
+      Charter fares to Florida usually include hold luggage, but flight-only
+      bookings vary. Verify before relying on this.
+
+  AA:
+    name: American Airlines
+    bags_included_per_passenger: 1
+    hand_baggage_only_brands: ["Basic Economy"]
+    extra_bag_gbp_each_way: 70
+    checked_at: 2026-09-06
+    confidence: low
+
+  DL:
+    name: Delta
+    bags_included_per_passenger: 1
+    hand_baggage_only_brands: ["Basic Economy"]
+    extra_bag_gbp_each_way: 70
+    checked_at: 2026-09-06
+    confidence: low
+
+  UA:
+    name: United
+    bags_included_per_passenger: 1
+    hand_baggage_only_brands: ["Basic Economy"]
+    extra_bag_gbp_each_way: 70
+    checked_at: 2026-09-06
+    confidence: low
+
+  EI:
+    name: Aer Lingus
+    bags_included_per_passenger: 1
+    hand_baggage_only_brands: ["Saver"]
+    extra_bag_gbp_each_way: 60
+    checked_at: 2026-09-06
+    confidence: low
+
+# Non-flight cost that only applies to Shape B (fly home from Miami).
+# A one-way car hire from Orlando or Tampa down to Miami attracts a drop-off
+# fee, which can quietly erase the airfare saving that made Shape B attractive.
+# Set `apply: true` to fold it into Shape B totals; false shows it as a note.
+one_way_car_hire:
+  apply: false
+  estimate_gbp: 150
+  checked_at: 2026-09-06
+  notes: >-
+    Rough placeholder. Get a real quote before treating a Shape B saving as
+    real; the fee varies a lot by supplier and how far ahead you book.
