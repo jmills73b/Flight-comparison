@@ -8,7 +8,7 @@
  * the failure rather than a number.
  */
 
-import { parseStops, matchCarrier } from './shared.js';
+import { parseStops, matchCarrier, filterByStops, stopsReason } from './shared.js';
 import { bucketParty } from '../lib/config.js';
 
 export const PROVIDER = 'google_flights';
@@ -34,10 +34,16 @@ export async function search(page, { url, trip, passengers, directions = 1, time
     // £50 per passenger per direction. A real transatlantic fare is far above
     // this; it exists only to reject parsing artefacts.
     const minPlausibleFare = 50 * passengers * directions;
-    const offers = rows
+    const parsed = rows
       .map((r) => parseRow(r, minPlausibleFare))
       .filter((o) => o !== null);
 
+    const dropped = filterByStops(parsed, trip.max_stops);
+    const offers = dropped.kept;
+
+    if (offers.length === 0 && parsed.length > 0) {
+      return fail('no_offers_within_stop_limit', stopsReason(trip.max_stops, dropped), page, started);
+    }
     if (offers.length === 0) {
       return fail(
         'no_offers_parsed',

@@ -35,7 +35,11 @@ trip:
 
   cabin: economy          # economy | premium_economy | business | first
   checked_bags: 4         # one per passenger
-  max_stops: 1            # direct and one-stop; 2+ excluded
+  # Direct flights only. Asked for explicitly: with a 9- and 12-year-old, a
+  # 13h30 one-stop is not a cheaper version of the same trip, it is a
+  # different trip. Enforced twice — the search asks for direct where the
+  # provider supports it, and any offer not confirmed as direct is dropped.
+  max_stops: 0
 
 # ---------------------------------------------------------------------------
 # OUTBOUND — fixed. Fly from London on either date, into either airport.

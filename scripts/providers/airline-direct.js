@@ -37,6 +37,8 @@ import {
   dismissConsent,
   waitForPrice,
   fail,
+  filterByStops,
+  stopsReason,
 } from './shared.js';
 import { parseBaOffer, parseBaRibbon } from './ba-parse.js';
 
@@ -199,14 +201,16 @@ function makeAdapter(key) {
         offers = rows.map((r) => parseRow(r, passengers, carrier)).filter(Boolean);
       }
 
-      if (offers.length === 0) {
-        return fail(
-          'no_offers_parsed',
-          `No offer survived validation`,
-          page,
-          started
-        );
+      const dropped = filterByStops(offers, trip.max_stops);
+      const withinLimit = dropped.kept;
+
+      if (withinLimit.length === 0 && offers.length > 0) {
+        return fail('no_offers_within_stop_limit', stopsReason(trip.max_stops, dropped), page, started);
       }
+      if (withinLimit.length === 0) {
+        return fail('no_offers_parsed', 'No offer survived validation', page, started);
+      }
+      offers = withinLimit;
 
       return {
         status: 'ok',

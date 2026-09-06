@@ -138,3 +138,44 @@ export async function waitForPrice(page, timeoutMs) {
     return { ok: false, status: 'no_prices_rendered', reason: 'No price appeared before timeout' };
   }
 }
+
+/**
+ * Enforces the stop limit after parsing.
+ *
+ * Not every provider can express "direct only" in its URL, and a filter that
+ * only sometimes applies is worse than none — it would show a one-stop as the
+ * headline price for some sources and not others. So the limit is applied
+ * here, to every offer, from every source.
+ *
+ * An offer whose stop count could not be read is dropped rather than assumed
+ * direct. Presenting an unconfirmed flight as direct is exactly the kind of
+ * plausible-but-wrong answer this project refuses to give.
+ */
+export function filterByStops(offers, maxStops) {
+  if (maxStops === null || maxStops === undefined) {
+    return { kept: offers, droppedTooManyStops: 0, droppedUnknownStops: 0 };
+  }
+  let droppedTooManyStops = 0;
+  let droppedUnknownStops = 0;
+  const kept = offers.filter((o) => {
+    if (o.stops === null || o.stops === undefined) {
+      droppedUnknownStops++;
+      return false;
+    }
+    if (o.stops > maxStops) {
+      droppedTooManyStops++;
+      return false;
+    }
+    return true;
+  });
+  return { kept, droppedTooManyStops, droppedUnknownStops };
+}
+
+export function stopsReason(maxStops, dropped) {
+  const want = maxStops === 0 ? 'direct only' : `at most ${maxStops} stop(s)`;
+  return (
+    `No offer met the stop limit (${want}): ` +
+    `${dropped.droppedTooManyStops} had too many stops, ` +
+    `${dropped.droppedUnknownStops} had an unreadable stop count`
+  );
+}

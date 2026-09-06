@@ -45,15 +45,26 @@ function partyPhrase(trip) {
   return bits.length ? ` for ${bits.join(' and ')}` : '';
 }
 
+/** "nonstop" in the query text; the adapter still enforces it after parsing. */
+const nonstopPhrase = (trip) => (trip.max_stops === 0 ? ' nonstop' : '');
+
 export function roundTripUrl(trip, { from, to, out, back }) {
   const p = params(trip);
-  p.set('q', `Flights from ${from} to ${to} on ${out} through ${back}${partyPhrase(trip)}`);
+  p.set(
+    'q',
+    `Flights from ${from} to ${to} on ${out} through ${back}` +
+      `${partyPhrase(trip)}${nonstopPhrase(trip)}`
+  );
   return `${BASE}?${p}`;
 }
 
 export function oneWayUrl(trip, { from, to, date }) {
   const p = params(trip);
-  p.set('q', `Flights from ${from} to ${to} on ${date} one way${partyPhrase(trip)}`);
+  p.set(
+    'q',
+    `Flights from ${from} to ${to} on ${date} one way` +
+      `${partyPhrase(trip)}${nonstopPhrase(trip)}`
+  );
   return `${BASE}?${p}`;
 }
 
@@ -92,8 +103,10 @@ function skyscannerParams(trip, rtn) {
     currency: trip.currency,
     market: 'UK',
     locale: trip.locale,
-    preferdirects: 'false',
+    preferdirects: trip.max_stops === 0 ? 'true' : 'false',
   });
+  // Confirmed from a real search URL: excludes one-stop and multi-stop.
+  if (trip.max_stops === 0) p.set('stops', '!oneStop,!twoPlusStops');
   if (childAges.length) p.set('childrenv2', childAges.join('|'));
   return p;
 }

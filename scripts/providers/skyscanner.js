@@ -34,6 +34,8 @@ const AIRLINE_CODES = [
   ['KLM', 'KL'],
 ];
 
+import { filterByStops, stopsReason } from './shared.js';
+
 export const PROVIDER = 'skyscanner';
 export const PROVIDER_LABEL = 'Skyscanner';
 
@@ -57,10 +59,16 @@ export async function search(page, { url, trip, passengers, timeoutMs = 30000 })
     // Per person, so the floor is per person too — £50 for a transatlantic
     // leg is already implausibly low, which is the point.
     const minPerPerson = 50;
-    const offers = rows
+    const parsed = rows
       .map((r) => parseRow(r, minPerPerson, passengers))
       .filter(Boolean);
 
+    const dropped = filterByStops(parsed, trip.max_stops);
+    const offers = dropped.kept;
+
+    if (offers.length === 0 && parsed.length > 0) {
+      return fail('no_offers_within_stop_limit', stopsReason(trip.max_stops, dropped), page, started);
+    }
     if (offers.length === 0) {
       return fail(
         'no_offers_parsed',
