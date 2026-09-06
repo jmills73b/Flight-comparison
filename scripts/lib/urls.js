@@ -52,6 +52,7 @@ export function plannedSearches({ trip, itineraries, legs }) {
     searches.push({
       kind: 'round_trip',
       id: it.id,
+      signature: it.signature,
       label: `${it.origin} ⇄ ${it.into}`,
       out: it.out,
       back: it.back,
@@ -68,6 +69,7 @@ export function plannedSearches({ trip, itineraries, legs }) {
     searches.push({
       kind: 'one_way',
       id: leg.id,
+      signature: leg.signature,
       label: `${leg.from} → ${leg.to}`,
       date: leg.date,
       url: oneWayUrl(trip, { from: leg.from, to: leg.to, date: leg.date }),

@@ -230,6 +230,36 @@ npm run collect  # do a full run locally
 node scripts/collect.js --only O1   # run a single search
 ```
 
+### Changing the trip
+
+The return dates are expected to move. `config/searches.yml` is therefore
+**declarative**: it states the outbound dates and the return options, and the
+12 itineraries, 7 legs and 6 TUI searches are all *generated* from that. A
+return date is one edit in one place:
+
+```yaml
+returns:
+  - shape: A
+    date: 2027-08-19      # change this line
+    from: [MCO, TPA]
+```
+
+Everything follows automatically — night counts, which TUI searches fit a
+7-night charter rotation, and the leg composition that produces split-ticket
+prices. `npm run urls` shows the new search list before you commit.
+
+**Price history survives the change correctly.** Every row in `history.csv`
+carries a *signature* — the dates and airports actually searched, such as
+`2027-08-19|MCO>LON` — alongside the short id. Series are grouped on the
+signature, never the id, because `R1` can come to mean a different search after
+an edit while a signature cannot. So changing a return date starts a fresh
+series rather than silently splicing a different trip onto the old prices. The
+old series is kept and shown as *retired* on the dashboard.
+
+Adding a third return option, or a third arrival airport, works the same way:
+add it to the config and the matrix regenerates. Cost scales gently — a new
+arrival airport adds one leg, not one search per itinerary.
+
 ---
 
 ## 6. What gets checked — the full combination list

@@ -10,6 +10,10 @@ const DEBUG_DIR = join(ROOT, 'data', 'debug');
 export const HISTORY_COLUMNS = [
   'collected_at',
   'search_id',
+  // What was actually searched, e.g. "2027-08-19|MCO>LON". The short id can be
+  // reused for a different search if the trip dates change; this cannot, so
+  // series are grouped on it rather than on the id.
+  'signature',
   'kind',
   'status',
   'out_date',

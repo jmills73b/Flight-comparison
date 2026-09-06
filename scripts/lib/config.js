@@ -9,10 +9,7 @@ function readYaml(relPath) {
   return parse(readFileSync(join(ROOT, relPath), 'utf8'));
 }
 
-/**
- * A date in searches.yml may be parsed by YAML into a Date. Everything
- * downstream wants a plain YYYY-MM-DD string, so normalise once, here.
- */
+/** YAML turns bare dates into Date objects; everything downstream wants a string. */
 function isoDate(value) {
   if (value instanceof Date) return value.toISOString().slice(0, 10);
   const s = String(value);
@@ -22,11 +19,127 @@ function isoDate(value) {
   return s;
 }
 
+function nightsBetween(from, to) {
+  const ms = Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`);
+  return Math.round(ms / 86400000);
+}
+
+/**
+ * A signature identifies what was actually searched, independent of the short
+ * display id. Changing a return date changes the signature, which is how the
+ * dashboard knows to start a fresh price series rather than splicing a
+ * different trip onto the old one.
+ */
+const itinerarySignature = (o) =>
+  `${o.out}|${o.origin}>${o.into}|${o.home_from}>${o.origin}|${o.back}`;
+const legSignature = (l) => `${l.date}|${l.from}>${l.to}`;
+
+/**
+ * Build the itinerary matrix from the declarative outbound/returns config.
+ *
+ * Home airports are ordered so the true round trip comes first for each
+ * arrival airport, and open jaws follow — which is why A1 is MCO/MCO and A2 is
+ * MCO/TPA rather than an arbitrary order.
+ */
+function buildItineraries(outbound, returns) {
+  const itineraries = [];
+  const counters = {};
+
+  for (const ret of returns) {
+    const shape = ret.shape;
+    const back = isoDate(ret.date);
+
+    for (const out of outbound.dates.map(isoDate)) {
+      for (const into of outbound.into) {
+        const homes = [...ret.from].sort((a, b) => {
+          if (a === into) return -1;
+          if (b === into) return 1;
+          return String(a).localeCompare(String(b));
+        });
+
+        for (const home_from of homes) {
+          counters[shape] = (counters[shape] ?? 0) + 1;
+          const it = {
+            id: `${shape}${counters[shape]}`,
+            shape,
+            out,
+            back,
+            origin: outbound.origin,
+            into,
+            home_from,
+            nights: nightsBetween(out, back),
+            isRoundTrip: into === home_from,
+          };
+          it.signature = itinerarySignature(it);
+          itineraries.push(it);
+        }
+      }
+    }
+  }
+
+  if (itineraries.some((it) => it.nights <= 0)) {
+    throw new Error('A return date is on or before its outbound date');
+  }
+  return itineraries;
+}
+
+/**
+ * The one-way legs every itinerary is composed from. Deduplicated, so adding a
+ * second arrival airport costs one extra leg rather than one per itinerary.
+ */
+function buildLegs(itineraries) {
+  const out = new Map();
+  const back = new Map();
+
+  for (const it of itineraries) {
+    const o = { date: it.out, from: it.origin, to: it.into };
+    const r = { date: it.back, from: it.home_from, to: it.origin };
+    for (const [map, leg] of [[out, o], [back, r]]) {
+      const key = legSignature(leg);
+      if (!map.has(key)) map.set(key, { ...leg, signature: key, composes: [] });
+      map.get(key).composes.push(it.id);
+    }
+  }
+
+  const number = (entries, prefix) =>
+    [...entries].map((leg, i) => ({ ...leg, id: `${prefix}${i + 1}` }));
+
+  return [...number(out.values(), 'O'), ...number(back.values(), 'R')];
+}
+
+/** TUI sells matched same-airport return rotations from Gatwick. */
+function buildTuiSearches(tui, outbound, returns) {
+  if (!tui) return [];
+  const ret = returns.find((r) => r.shape === tui.return_shape);
+  if (!ret) {
+    throw new Error(`TUI references return shape "${tui.return_shape}", which does not exist`);
+  }
+  const back = isoDate(ret.date);
+  const searches = [];
+  let n = 0;
+
+  for (const out of outbound.dates.map(isoDate)) {
+    for (const dest of tui.destinations) {
+      const nights = nightsBetween(out, back);
+      searches.push({
+        id: `T${++n}`,
+        airport: tui.airport,
+        dest,
+        out,
+        back,
+        nights,
+        rotationFit: nights === tui.preferred_nights,
+      });
+    }
+  }
+  return searches;
+}
+
 export function loadConfig() {
   const searches = readYaml('config/searches.yml');
   const fees = readYaml('config/carrier-fees.yml');
-
   const trip = searches.trip;
+
   const passengers = trip.adults + (trip.children?.length ?? 0);
   if (passengers < 1) throw new Error('Trip has no passengers');
   if (trip.checked_bags > passengers) {
@@ -35,70 +148,45 @@ export function loadConfig() {
     );
   }
 
-  const itineraries = searches.itineraries.map((it) => ({
-    ...it,
-    out: isoDate(it.out),
-    back: isoDate(it.back),
-    // A true round trip returns from the airport it flew into. Anything else
-    // is an open jaw, which Google's q= URL cannot express as one ticket.
-    isRoundTrip: it.into === it.home_from,
-  }));
-
-  const legs = searches.legs.map((l) => ({ ...l, date: isoDate(l.date) }));
-
-  const tui = (searches.tui ?? []).map((t) => ({
-    ...t,
-    out: isoDate(t.out),
-    back: isoDate(t.back),
-  }));
+  const itineraries = buildItineraries(searches.outbound, searches.returns);
+  const legs = buildLegs(itineraries);
+  const tui = buildTuiSearches(searches.tui, searches.outbound, searches.returns);
 
   validateLegCoverage(itineraries, legs);
 
-  return { trip, passengers, itineraries, legs, tui, airports: searches.airports, fees };
+  return {
+    trip,
+    passengers,
+    itineraries,
+    legs,
+    tui,
+    airports: searches.airports,
+    fees,
+  };
 }
 
 /**
- * Every itinerary must be composable from exactly one outbound and one return
- * leg, because that composition is how split-ticket prices are produced. A
- * config edit that breaks this would otherwise show up as silently missing
- * prices, so fail loudly at load instead.
+ * Legs are generated, so this should never fail — but it is the invariant the
+ * whole split-ticket price rests on, and a silent break would show up as
+ * missing prices rather than an error. Cheap to assert, expensive to miss.
  */
 function validateLegCoverage(itineraries, legs) {
   for (const it of itineraries) {
-    const out = legs.filter(
-      (l) => l.date === it.out && l.from === it.origin && l.to === it.into
-    );
-    const back = legs.filter(
-      (l) => l.date === it.back && l.from === it.home_from && l.to === it.origin
-    );
-    if (out.length !== 1 || back.length !== 1) {
-      throw new Error(
-        `Itinerary ${it.id} is not covered by exactly one leg pair ` +
-          `(found ${out.length} outbound, ${back.length} return). ` +
-          `Check config/searches.yml.`
-      );
+    const { out, back } = legsFor(it, legs);
+    if (!out || !back) {
+      throw new Error(`Itinerary ${it.id} has no matching leg pair`);
     }
-    if (!out[0].composes.includes(it.id) || !back[0].composes.includes(it.id)) {
-      throw new Error(
-        `Legs ${out[0].id}/${back[0].id} do not list ${it.id} in composes`
-      );
+    if (!out.composes.includes(it.id) || !back.composes.includes(it.id)) {
+      throw new Error(`Legs ${out.id}/${back.id} do not list ${it.id} in composes`);
     }
   }
 }
 
 export function legsFor(itinerary, legs) {
+  const wantOut = `${itinerary.out}|${itinerary.origin}>${itinerary.into}`;
+  const wantBack = `${itinerary.back}|${itinerary.home_from}>${itinerary.origin}`;
   return {
-    out: legs.find(
-      (l) =>
-        l.date === itinerary.out &&
-        l.from === itinerary.origin &&
-        l.to === itinerary.into
-    ),
-    back: legs.find(
-      (l) =>
-        l.date === itinerary.back &&
-        l.from === itinerary.home_from &&
-        l.to === itinerary.origin
-    ),
+    out: legs.find((l) => l.signature === wantOut),
+    back: legs.find((l) => l.signature === wantBack),
   };
 }

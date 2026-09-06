@@ -100,6 +100,7 @@ for (const s of searches) {
     historyRows.push({
       collected_at: collectedAt,
       search_id: s.id,
+      signature: s.signature,
       kind: s.kind,
       status: outcome.status,
       out_date: s.out ?? s.date ?? '',
@@ -110,6 +111,7 @@ for (const s of searches) {
       historyRows.push({
         collected_at: collectedAt,
         search_id: s.id,
+        signature: s.signature,
         kind: s.kind,
         status: 'ok',
         out_date: s.out ?? s.date ?? '',

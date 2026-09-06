@@ -18,11 +18,17 @@ const num = (v) => (v === '' || v == null ? null : Number(v));
 const runs = [...new Set(rows.map((r) => r.collected_at))].sort();
 const latestRun = runs.at(-1) ?? null;
 
-/** Cheapest priced offer for a search id within one run. */
-function bestFor(searchId, collectedAt) {
+/**
+ * Cheapest priced offer for a search within one run, matched on signature
+ * rather than short id. If a return date changes, "R1" comes to mean a
+ * different search — the signature does not, so an edited trip starts a fresh
+ * series instead of silently continuing the old one with new prices.
+ */
+function bestFor(signature, collectedAt) {
+  if (!signature) return null;
   const candidates = rows.filter(
     (r) =>
-      r.search_id === searchId &&
+      r.signature === signature &&
       r.collected_at === collectedAt &&
       r.status === 'ok' &&
       num(r.true_total) !== null
@@ -47,8 +53,11 @@ function bestFor(searchId, collectedAt) {
 /** Cheapest total for one itinerary in one run, by either ticket structure. */
 function itineraryPrice(it, collectedAt) {
   const { out, back } = legsFor(it, cfg.legs);
-  const split = composeSplitTicket(bestFor(out.id, collectedAt), bestFor(back.id, collectedAt));
-  const single = it.isRoundTrip ? bestFor(it.id, collectedAt) : null;
+  const split = composeSplitTicket(
+    bestFor(out?.signature, collectedAt),
+    bestFor(back?.signature, collectedAt)
+  );
+  const single = it.isRoundTrip ? bestFor(it.signature, collectedAt) : null;
   const options = [
     single && { mode: 'single_ticket', trueTotal: single.trueTotal, detail: single },
     split && { mode: 'two_one_ways', trueTotal: split.trueTotal, detail: split },
@@ -100,10 +109,23 @@ const itineraries = cfg.itineraries.map((it) => {
 // A search that has never once returned an offer is either not on sale yet or
 // broken. The dashboard has to be able to tell those apart, so carry the last
 // status verbatim rather than collapsing everything to "no price".
+// Keyed on signature so a retired search (an old return date) stays visible as
+// its own entry rather than being overwritten by whatever now shares its id.
+const currentSignatures = new Set([
+  ...cfg.legs.map((l) => l.signature),
+  ...cfg.itineraries.filter((i) => i.isRoundTrip).map((i) => i.signature),
+]);
+
 const searchStatus = {};
-for (const id of [...new Set(rows.map((r) => r.search_id))]) {
-  const last = rows.filter((r) => r.search_id === id).at(-1);
-  searchStatus[id] = { status: last?.status ?? 'unknown', at: last?.collected_at ?? null };
+for (const sig of [...new Set(rows.map((r) => r.signature))]) {
+  const matching = rows.filter((r) => r.signature === sig);
+  const last = matching.at(-1);
+  searchStatus[last?.search_id ?? sig] = {
+    signature: sig,
+    status: last?.status ?? 'unknown',
+    at: last?.collected_at ?? null,
+    retired: !currentSignatures.has(sig),
+  };
 }
 
 const priced = itineraries.filter((i) => i.current !== null);

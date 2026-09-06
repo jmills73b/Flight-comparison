@@ -1,8 +1,19 @@
 # Florida 2027 Fare Watch — what gets searched.
 #
-# Edit this file to change the trip. Everything else reads from here.
-# Airport codes are IATA. LON is a metro code covering Gatwick + Heathrow,
-# so one search returns both and the actual airport is recorded per result.
+# EDITING THE TRIP
+# Change a date below and everything follows: the 12 itineraries, the 7 shared
+# one-way legs and the 6 TUI searches are all generated from this file, so
+# there is only ever one place to edit. Run `npm run urls` afterwards to see
+# the new search list before committing.
+#
+# CHANGING A RETURN DATE
+# Safe to do at any time. The affected itineraries start a FRESH price history
+# rather than continuing the old one, because a different return date is a
+# different trip and the prices are not comparable. The old series is kept —
+# nothing is lost, it just stops there and is marked retired on the dashboard.
+#
+# Airport codes are IATA. LON is a metro code covering Gatwick + Heathrow, so
+# one search returns both and the actual airport is recorded per result.
 
 trip:
   name: Florida 2027
@@ -22,52 +33,59 @@ trip:
   max_stops: 1            # direct and one-stop; 2+ excluded
 
 # ---------------------------------------------------------------------------
-# The 12 itineraries. Priced as a single ticket (return or multi-city).
-# Shape A comes home from Florida on 19 Aug; Shape B from Miami on 22 Aug.
-# Where `into` and `home_from` differ, it is an open jaw: drive between them.
+# OUTBOUND — fixed. Fly from London on either date, into either airport.
 # ---------------------------------------------------------------------------
-itineraries:
-  - { id: A1, shape: A, out: 2027-08-11, back: 2027-08-19, origin: LON, into: MCO, home_from: MCO, nights: 8 }
-  - { id: A2, shape: A, out: 2027-08-11, back: 2027-08-19, origin: LON, into: MCO, home_from: TPA, nights: 8 }
-  - { id: A3, shape: A, out: 2027-08-11, back: 2027-08-19, origin: LON, into: TPA, home_from: TPA, nights: 8 }
-  - { id: A4, shape: A, out: 2027-08-11, back: 2027-08-19, origin: LON, into: TPA, home_from: MCO, nights: 8 }
-  - { id: A5, shape: A, out: 2027-08-12, back: 2027-08-19, origin: LON, into: MCO, home_from: MCO, nights: 7 }
-  - { id: A6, shape: A, out: 2027-08-12, back: 2027-08-19, origin: LON, into: MCO, home_from: TPA, nights: 7 }
-  - { id: A7, shape: A, out: 2027-08-12, back: 2027-08-19, origin: LON, into: TPA, home_from: TPA, nights: 7 }
-  - { id: A8, shape: A, out: 2027-08-12, back: 2027-08-19, origin: LON, into: TPA, home_from: MCO, nights: 7 }
-  - { id: B1, shape: B, out: 2027-08-11, back: 2027-08-22, origin: LON, into: MCO, home_from: MIA, nights: 11 }
-  - { id: B2, shape: B, out: 2027-08-11, back: 2027-08-22, origin: LON, into: TPA, home_from: MIA, nights: 11 }
-  - { id: B3, shape: B, out: 2027-08-12, back: 2027-08-22, origin: LON, into: MCO, home_from: MIA, nights: 10 }
-  - { id: B4, shape: B, out: 2027-08-12, back: 2027-08-22, origin: LON, into: TPA, home_from: MIA, nights: 10 }
+outbound:
+  origin: LON
+  dates:
+    - 2027-08-11        # Wednesday
+    - 2027-08-12        # Thursday
+  into:
+    - MCO               # Orlando International
+    - TPA               # Tampa International
 
 # ---------------------------------------------------------------------------
-# Seven one-way legs. Adding a matching pair gives the "two separate tickets"
-# price for any itinerary above, so this costs 7 searches rather than 24.
+# RETURNS — the part most likely to change. Edit a date here and the whole
+# matrix follows.
+#
+#   shape A   come home from Florida
+#   shape B   drive south and come home from Miami (an open jaw)
+#
+# `from` lists every airport you would consider flying home from on that date.
+# Where it differs from the arrival airport, that is an in-state open jaw.
+#
+# To add a third option, add another entry with its own shape letter. To drop
+# one, delete it — its price history stays in data/history.csv either way.
 # ---------------------------------------------------------------------------
-legs:
-  - { id: O1, date: 2027-08-11, from: LON, to: MCO, composes: [A1, A2, B1] }
-  - { id: O2, date: 2027-08-11, from: LON, to: TPA, composes: [A3, A4, B2] }
-  - { id: O3, date: 2027-08-12, from: LON, to: MCO, composes: [A5, A6, B3] }
-  - { id: O4, date: 2027-08-12, from: LON, to: TPA, composes: [A7, A8, B4] }
-  - { id: R1, date: 2027-08-19, from: MCO, to: LON, composes: [A1, A4, A5, A8] }
-  - { id: R2, date: 2027-08-19, from: TPA, to: LON, composes: [A2, A3, A6, A7] }
-  - { id: R3, date: 2027-08-22, from: MIA, to: LON, composes: [B1, B2, B3, B4] }
+returns:
+  - shape: A
+    date: 2027-08-19    # Thursday
+    from: [MCO, TPA]
+
+  - shape: B
+    date: 2027-08-22    # Sunday
+    from: [MIA]
 
 # ---------------------------------------------------------------------------
 # TUI charter. Gatwick only — TUI does not operate from Heathrow.
-# Charter flies weekly rotations, so 7 nights (12->19 Aug, Thu->Thu) is the
-# only pair that fits cleanly. rotation_fit: false means an empty result is
-# expected rather than a bug.
-# SFB is Orlando Sanford, ~45 min from the parks, effectively charter-only
-# from the UK — which is why it appears here and not in the itineraries above.
+#
+# Charter flies weekly rotations, so TUI mostly sells 7 and 14 night trips.
+# `preferred_nights` marks which generated searches fit that pattern and are
+# therefore most likely to exist; the others are still attempted, and an empty
+# result for them is expected rather than a bug.
+#
+# Tied to the shape A return, because charter sells matched return rotations
+# and TUI does not serve Miami from the UK — so shape B has no TUI option.
+#
+# SFB is Orlando Sanford, ~45 min from the parks. It is effectively a
+# charter-only route from the UK, which is why it appears here and not in the
+# scheduled matrix above.
 # ---------------------------------------------------------------------------
 tui:
-  - { id: T1, airport: LGW, dest: MCO, out: 2027-08-11, back: 2027-08-19, nights: 8, rotation_fit: false }
-  - { id: T2, airport: LGW, dest: SFB, out: 2027-08-11, back: 2027-08-19, nights: 8, rotation_fit: false }
-  - { id: T3, airport: LGW, dest: TPA, out: 2027-08-11, back: 2027-08-19, nights: 8, rotation_fit: false }
-  - { id: T4, airport: LGW, dest: MCO, out: 2027-08-12, back: 2027-08-19, nights: 7, rotation_fit: true }
-  - { id: T5, airport: LGW, dest: SFB, out: 2027-08-12, back: 2027-08-19, nights: 7, rotation_fit: true }
-  - { id: T6, airport: LGW, dest: TPA, out: 2027-08-12, back: 2027-08-19, nights: 7, rotation_fit: true }
+  airport: LGW
+  destinations: [MCO, SFB, TPA]
+  return_shape: A
+  preferred_nights: 7
 
 # Human-readable airport names, used in search text and on the dashboard.
 airports:

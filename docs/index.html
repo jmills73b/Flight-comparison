@@ -159,9 +159,17 @@ function render(d) {
   html += '<h2>Search status</h2><div class="rule"></div><div class="scroll"><table>' +
     '<thead><tr><th>Search</th><th>Last status</th><th>When</th></tr></thead><tbody>' +
     Object.entries(d.searchStatus).map(([id, s]) =>
-      '<tr><td class="id">' + id + '</td><td>' + statusTag(s.status) +
+      '<tr><td class="id">' + id + (s.retired ? ' <span class="tag">retired</span>' : '') +
+      '</td><td>' + statusTag(s.status) +
       '</td><td class="mono">' + when(s.at) + '</td></tr>').join('') +
     '</tbody></table></div>';
+
+  if (Object.values(d.searchStatus).some(s => s.retired)) {
+    html += '<div class="note"><strong>Some searches are retired.</strong> The trip dates ' +
+      'changed, so those searches are no longer run. Their price history is kept but ends ' +
+      'where the change was made — a different return date is a different trip, and the ' +
+      'prices are not comparable.</div>';
+  }
 
   if (d.carHire && !d.carHire.apply) {
     html += '<div class="note"><strong>Shape B excludes car hire.</strong> Flying home from ' +
