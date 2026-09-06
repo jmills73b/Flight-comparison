@@ -484,9 +484,14 @@ It's plain HTML/JS reading `docs/data.json` — no server, no build step, no
 framework needed. Every scrape run updates the data file and the site reflects it
 within a minute.
 
-> **One manual step:** GitHub Pages must be enabled once in
-> **Settings → Pages → Source: GitHub Actions**. Pages is not currently enabled on
-> this repo and can't be switched on from code.
+> **One manual step:** GitHub Pages must be enabled once in **Settings → Pages**,
+> with **Source: Deploy from a branch**, branch `main`, folder `/docs`. It cannot
+> be switched on from code.
+>
+> There is deliberately no Pages *workflow*. `docs/` is plain static files with no
+> build step, so serving the folder directly is simpler and removes a job that can
+> fail — an earlier `pages.yml` using the GitHub Actions source failed immediately
+> and would have emailed a failure on every tracker run that touched `docs/`.
 
 *Alternative considered:* Cloudflare Pages would also host this free and could point
 at the same repo. GitHub Pages wins only because the data already lives here, so
