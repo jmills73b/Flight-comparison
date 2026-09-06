@@ -63,13 +63,28 @@ jobs:
           git add data docs/data.json
           if git diff --staged --quiet; then
             echo "No change to commit."
-          else
-            git commit -m "Fare snapshot $(date -u '+%Y-%m-%d %H:%M UTC')"
-            git push
+            exit 0
           fi
+          git commit -m "Fare snapshot $(date -u '+%Y-%m-%d %H:%M UTC')"
 
+          # Anything else may have landed on main while this run was collecting
+          # — a hand push, or an overlapping run. Rebase onto it and retry
+          # rather than losing the results, which is what a bare push does.
+          for attempt in 1 2 3; do
+            if git push; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected, rebasing onto origin/main (attempt $attempt)."
+            git pull --rebase --autostash origin main || exit 1
+          done
+          echo "Could not push after 3 attempts."
+          exit 1
+
+      # Must be always(): without it, a failed commit step skips this one and a
+      # failed collection is reported as a green run.
       - name: Fail if collection failed
-        if: steps.collect.outcome == 'failure'
+        if: always() && steps.collect.outcome == 'failure'
         run: |
           echo "Collection failed — see the 'Collect fares' step above."
           echo "Raw HTML for failed searches is committed under data/debug/."

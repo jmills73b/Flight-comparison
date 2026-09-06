@@ -27,15 +27,29 @@ function params(trip) {
   });
 }
 
+/**
+ * Party size stated in the query text, so Google parses it server-side. The
+ * first run drove the passenger stepper through the UI instead, and every
+ * search died retrying that click. The UI is still read afterwards, but only
+ * to confirm the number — clicking is now the fallback, not the mechanism.
+ */
+function partyPhrase(trip) {
+  const bits = [];
+  if (trip.adults > 0) bits.push(`${trip.adults} adult${trip.adults === 1 ? '' : 's'}`);
+  const kids = trip.children?.length ?? 0;
+  if (kids > 0) bits.push(`${kids} child${kids === 1 ? '' : 'ren'}`);
+  return bits.length ? ` for ${bits.join(' and ')}` : '';
+}
+
 export function roundTripUrl(trip, { from, to, out, back }) {
   const p = params(trip);
-  p.set('q', `Flights from ${from} to ${to} on ${out} through ${back}`);
+  p.set('q', `Flights from ${from} to ${to} on ${out} through ${back}${partyPhrase(trip)}`);
   return `${BASE}?${p}`;
 }
 
 export function oneWayUrl(trip, { from, to, date }) {
   const p = params(trip);
-  p.set('q', `Flights from ${from} to ${to} on ${date} one way`);
+  p.set('q', `Flights from ${from} to ${to} on ${date} one way${partyPhrase(trip)}`);
   return `${BASE}?${p}`;
 }
 

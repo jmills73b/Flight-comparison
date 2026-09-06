@@ -105,50 +105,69 @@ async function dismissConsent(page) {
  */
 async function setPassengers(page, trip) {
   const wanted = trip.adults + (trip.children?.length ?? 0);
-  if (wanted === 1) return { ok: true, confirmed: 1 };
+  if (wanted === 1) return { ok: true, confirmed: 1, via: 'default' };
 
+  // The URL already asked for the party size in the query text, so the usual
+  // case is that it is right before we touch anything.
+  const fromUrl = await readPassengerCount(page);
+  if (fromUrl === wanted) return { ok: true, confirmed: fromUrl, via: 'query' };
+
+  // Fall back to driving the stepper. Best effort: if it does not end up on
+  // the right number, the search fails rather than recording a wrong party.
   try {
-    const opener = page
-      .locator('[aria-label*="passenger" i], [aria-label*="Passengers" i]')
-      .first();
-    await opener.click({ timeout: 12000 });
+    const opener = passengerControl(page);
+    await opener.click({ timeout: 10000 });
+    await addPassengers(page, 'adult', trip.adults - 1);
+    await addPassengers(page, 'child', (trip.children ?? []).length);
 
-    await addPassengers(page, 'Adult', trip.adults - 1);
-    await addPassengers(page, 'Child', (trip.children ?? []).length);
-
-    // Close the menu, then read back what the control now says.
-    const done = page.getByRole('button', { name: /done/i }).first();
-    if (await done.isVisible({ timeout: 3000 }).catch(() => false)) {
+    const done = page.getByRole('button', { name: /^done$/i }).first();
+    if (await done.isVisible({ timeout: 2500 }).catch(() => false)) {
       await done.click({ timeout: 5000 });
     } else {
       await page.keyboard.press('Escape');
     }
-
-    const label =
-      (await opener.getAttribute('aria-label')) ?? (await opener.innerText());
-    const found = String(label).match(/(\d+)/);
-    const confirmed = found ? Number(found[1]) : null;
-
-    if (confirmed !== wanted) {
-      return {
-        ok: false,
-        reason: `Passenger control reads ${confirmed ?? 'unknown'}, expected ${wanted} (from "${label}")`,
-      };
-    }
-    return { ok: true, confirmed };
   } catch (err) {
-    return { ok: false, reason: `Could not set passengers: ${err.message}` };
+    return {
+      ok: false,
+      reason:
+        `Query text gave ${fromUrl ?? 'no readable'} passengers, expected ${wanted}, ` +
+        `and the stepper fallback failed: ${err.message}`,
+    };
+  }
+
+  const confirmed = await readPassengerCount(page);
+  if (confirmed !== wanted) {
+    return {
+      ok: false,
+      reason: `Passenger control reads ${confirmed ?? 'unknown'}, expected ${wanted}`,
+    };
+  }
+  return { ok: true, confirmed, via: 'stepper' };
+}
+
+function passengerControl(page) {
+  return page.locator('[aria-label*="passenger" i]').first();
+}
+
+/** Reads the party size off the passenger button, or null if unreadable. */
+async function readPassengerCount(page) {
+  try {
+    const control = passengerControl(page);
+    if (!(await control.isVisible({ timeout: 8000 }).catch(() => false))) return null;
+    const label =
+      (await control.getAttribute('aria-label')) ?? (await control.innerText());
+    const found = String(label ?? '').match(/(\d+)/);
+    return found ? Number(found[1]) : null;
+  } catch {
+    return null;
   }
 }
 
 async function addPassengers(page, kind, times) {
   for (let i = 0; i < times; i++) {
-    const plus = page
-      .locator(`[aria-label*="Add ${kind}" i], button[aria-label*="${kind}" i]`)
-      .filter({ hasText: /^$/ })
-      .first();
-    await plus.click({ timeout: 8000 });
-    await page.waitForTimeout(180);
+    const plus = page.locator(`[aria-label*="Add ${kind}" i]`).first();
+    await plus.click({ timeout: 6000 });
+    await page.waitForTimeout(200);
   }
 }
 
