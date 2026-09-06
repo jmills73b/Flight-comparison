@@ -35,6 +35,7 @@ import {
   waitForPrice,
   fail,
 } from './shared.js';
+import { parseBaOffer, parseBaRibbon } from './ba-parse.js';
 
 const MIN_PER_PERSON = 50;
 
@@ -120,23 +121,62 @@ function makeAdapter(key) {
       const ready = await waitForPrice(page, timeoutMs);
       if (!ready.ok) return fail(ready.status, ready.reason, page, started);
 
-      const rows = await page.evaluate(() =>
-        Array.from(document.querySelectorAll('li, tr, article, [class*="flight"], [class*="fare"]'))
-          .map((el) => ({
-            text: (el.innerText || '').replace(/\s+/g, ' ').trim(),
-            href: el.querySelector('a')?.getAttribute('href') || null,
-          }))
-          .filter((r) => /£\s?[\d,]{2,}/.test(r.text) && r.text.length > 20 && r.text.length < 1200)
-      );
+      let offers = [];
+      let ribbon = [];
 
-      const offers = rows
-        .map((r) => parseRow(r, passengers, carrier))
-        .filter(Boolean);
+      if (carrier.code === 'BA') {
+        // BA states the party on the page; confirm it rather than trust it,
+        // the same rule the Google adapter follows.
+        const partyText = await page
+          .locator('[data-testid="edit-search-passengers-amount"]')
+          .first()
+          .innerText()
+          .catch(() => '');
+        const shown = String(partyText).match(/(\d+)/);
+        if (shown && Number(shown[1]) !== passengers) {
+          return fail(
+            'passenger_setup_failed',
+            `BA shows ${shown[1]} passengers, expected ${passengers}`,
+            page,
+            started
+          );
+        }
+
+        const raw = await page.evaluate(() =>
+          Array.from(document.querySelectorAll('[data-testid^="offerFlightHeader-"]')).map(
+            (el) => ({
+              testid: el.getAttribute('data-testid'),
+              text: (el.textContent || '').replace(/\s+/g, ' ').trim(),
+            })
+          )
+        );
+        offers = raw
+          .map((r) => parseBaOffer(r.text, r.testid, { passengers }))
+          .filter(Boolean);
+
+        // Free with every BA search: prices for the days either side.
+        const ribbonText = await page
+          .locator('[data-testid="ribbon-calendar-desktop"]')
+          .first()
+          .innerText()
+          .catch(() => '');
+        ribbon = parseBaRibbon(String(ribbonText).replace(/\s+/g, ' '));
+      } else {
+        const rows = await page.evaluate(() =>
+          Array.from(document.querySelectorAll('li, tr, article, [class*="flight"], [class*="fare"]'))
+            .map((el) => ({
+              text: (el.innerText || '').replace(/\s+/g, ' ').trim(),
+              href: el.querySelector('a')?.getAttribute('href') || null,
+            }))
+            .filter((r) => /£\s?[\d,]{2,}/.test(r.text) && r.text.length > 20 && r.text.length < 1200)
+        );
+        offers = rows.map((r) => parseRow(r, passengers, carrier)).filter(Boolean);
+      }
 
       if (offers.length === 0) {
         return fail(
           'no_offers_parsed',
-          `Found ${rows.length} candidate rows, none survived validation`,
+          `No offer survived validation`,
           page,
           started
         );
@@ -145,7 +185,8 @@ function makeAdapter(key) {
       return {
         status: 'ok',
         offers,
-        candidateRows: rows.length,
+        ribbon,
+        candidateRows: offers.length,
         elapsedMs: Date.now() - started,
         html: null,
       };

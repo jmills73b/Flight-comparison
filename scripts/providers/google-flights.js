@@ -9,6 +9,7 @@
  */
 
 import { parseStops, matchCarrier } from './shared.js';
+import { bucketParty } from '../lib/config.js';
 
 export const PROVIDER = 'google_flights';
 export const PROVIDER_LABEL = 'Google Flights';
@@ -94,7 +95,11 @@ async function dismissConsent(page) {
  * party we asked for; anything else fails the search.
  */
 async function setPassengers(page, trip) {
-  const wanted = trip.adults + (trip.children?.length ?? 0);
+  // Must come from the same bucketing the URL was built with. This read
+  // trip.children directly and silently became 2 when the config moved to
+  // real ages, so every search failed claiming the control was wrong.
+  const { adults, childAges } = bucketParty(trip).standard;
+  const wanted = adults + childAges.length;
   if (wanted === 1) return { ok: true, confirmed: 1, via: 'default' };
 
   // The URL already asked for the party size in the query text, so the usual
@@ -107,8 +112,8 @@ async function setPassengers(page, trip) {
   try {
     const opener = passengerControl(page);
     await opener.click({ timeout: 10000 });
-    await addPassengers(page, 'adult', trip.adults - 1);
-    await addPassengers(page, 'child', (trip.children ?? []).length);
+    await addPassengers(page, 'adult', adults - 1);
+    await addPassengers(page, 'child', childAges.length);
 
     const done = page.getByRole('button', { name: /^done$/i }).first();
     if (await done.isVisible({ timeout: 2500 }).catch(() => false)) {
