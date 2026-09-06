@@ -8,31 +8,35 @@
  * the failure rather than a number.
  */
 
-const AIRLINE_CODES = {
-  'British Airways': 'BA',
-  'Virgin Atlantic': 'VS',
-  'Norse Atlantic Airways': 'N0',
-  'Norse Atlantic': 'N0',
-  'American Airlines': 'AA',
-  American: 'AA',
-  Delta: 'DL',
-  'Delta Air Lines': 'DL',
-  United: 'UA',
-  'Aer Lingus': 'EI',
-  KLM: 'KL',
-  'Air France': 'AF',
-  Lufthansa: 'LH',
-  Iberia: 'IB',
-  Finnair: 'AY',
-  'TUI Airways': 'TOM',
-  Icelandair: 'FI',
-  'Play': 'OG',
-  JetBlue: 'B6',
-};
+/**
+ * Longest names first, matched on word boundaries. Bare "United" and
+ * "American" are deliberately absent: the first run's page contained "United
+ * Kingdom", "United States" and "United Arab Emirates" 23 times between them,
+ * and a looser matcher would have stamped those offers as United Airlines.
+ */
+const AIRLINE_CODES = [
+  ['Norse Atlantic Airways', 'N0'],
+  ['Norse Atlantic', 'N0'],
+  ['American Airlines', 'AA'],
+  ['United Airlines', 'UA'],
+  ['Delta Air Lines', 'DL'],
+  ['British Airways', 'BA'],
+  ['Virgin Atlantic', 'VS'],
+  ['Aer Lingus', 'EI'],
+  ['Air France', 'AF'],
+  ['TUI Airways', 'TOM'],
+  ['Icelandair', 'FI'],
+  ['Lufthansa', 'LH'],
+  ['JetBlue', 'B6'],
+  ['Finnair', 'AY'],
+  ['Iberia', 'IB'],
+  ['Delta', 'DL'],
+  ['KLM', 'KL'],
+];
 
 export const PROVIDER = 'google_flights';
 
-export async function search(page, { url, trip, passengers, timeoutMs = 45000 }) {
+export async function search(page, { url, trip, passengers, directions = 1, timeoutMs = 45000 }) {
   const started = Date.now();
   try {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
@@ -43,16 +47,25 @@ export async function search(page, { url, trip, passengers, timeoutMs = 45000 })
       return fail('passenger_setup_failed', partySet.reason, page, started);
     }
 
+    await submitSearch(page);
+
     const ready = await waitForResults(page, timeoutMs);
     if (!ready.ok) return fail(ready.status, ready.reason, page, started);
 
     const rows = await extractRows(page);
-    const offers = rows.map(parseRow).filter((o) => o !== null);
+    // £50 per passenger per direction. A real transatlantic fare is far above
+    // this; it exists only to reject parsing artefacts.
+    const minPlausibleFare = 50 * passengers * directions;
+    const offers = rows
+      .map((r) => parseRow(r, minPlausibleFare))
+      .filter((o) => o !== null);
 
     if (offers.length === 0) {
       return fail(
         'no_offers_parsed',
-        `Found ${rows.length} candidate rows but parsed no prices`,
+        `Found ${rows.length} candidate rows, but none survived validation ` +
+          `(needs a carrier, times or duration, and a fare of at least ` +
+          `£${minPlausibleFare})`,
         page,
         started
       );
@@ -99,9 +112,9 @@ async function dismissConsent(page) {
 }
 
 /**
- * The q= URL carries route and dates but not party size, so passengers are set
- * through the UI. This returns { ok } only once the control reports the party
- * we asked for; anything else fails the search.
+ * Confirms the party size. The q= URL states it in the query text, so this
+ * usually just reads it back. Returns { ok } only once the control reports the
+ * party we asked for; anything else fails the search.
  */
 async function setPassengers(page, trip) {
   const wanted = trip.adults + (trip.children?.length ?? 0);
@@ -171,6 +184,28 @@ async function addPassengers(page, kind, times) {
   }
 }
 
+/**
+ * The first live run landed on a page titled "London to Orlando | Google
+ * Flights" — the route parsed correctly — but with no fares anywhere in 1.9MB
+ * of HTML and no "no flights" message either. That points at the URL preparing
+ * the search without running it, so press Search if the button is there.
+ * Absent is fine: results may already be loading.
+ */
+async function submitSearch(page) {
+  try {
+    const button = page
+      .getByRole('button', { name: /^(search|explore)$/i })
+      .first();
+    if (await button.isVisible({ timeout: 4000 }).catch(() => false)) {
+      await button.click({ timeout: 6000 });
+      return true;
+    }
+  } catch {
+    /* fall through — waitForResults decides whether this mattered */
+  }
+  return false;
+}
+
 async function waitForResults(page, timeoutMs) {
   // A price string is the only thing worth waiting for — the results container
   // renders long before it has any fares in it.
@@ -211,7 +246,7 @@ async function extractRows(page) {
   });
 }
 
-export function parseRow(row) {
+export function parseRow(row, minPlausibleFare = 0) {
   const text = `${row.label} ${row.text}`;
 
   const price = text.match(/£\s?([\d,]+)/);
@@ -234,13 +269,25 @@ export function parseRow(row) {
 
   let carrier = null;
   let carrierName = null;
-  for (const [name, code] of Object.entries(AIRLINE_CODES)) {
-    if (text.includes(name)) {
+  for (const [name, code] of AIRLINE_CODES) {
+    if (new RegExp(`\\b${name}\\b`, 'i').test(text)) {
       carrier = code;
       carrierName = name;
       break;
     }
   }
+
+  // A price on its own is not a flight. The first live run proved this the
+  // expensive way: a stray "£28" elsewhere on the page was recorded as a
+  // one-way Orlando to London fare for four people, with no carrier, no times
+  // and no duration. An offer must look like one.
+  const looksLikeFlight =
+    carrier !== null || durationMin !== null || times.length >= 2;
+  if (!looksLikeFlight) return null;
+
+  // Second guard, on magnitude. Anything this far below a plausible
+  // transatlantic fare is a parsing artefact, not a bargain.
+  if (fare < minPlausibleFare) return null;
 
   return {
     fare,

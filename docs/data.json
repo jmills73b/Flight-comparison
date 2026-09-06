@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-06T11:32:49.650Z",
+  "generated_at": "2026-09-06T11:37:40.067Z",
   "trip": {
     "name": "Florida 2027",
     "adults": 3,
@@ -295,24 +295,6 @@
     "O4": {
       "signature": "2027-08-12|LON>TPA",
       "status": "no_prices_rendered",
-      "at": "2026-09-06T11:31:41.312Z",
-      "retired": false
-    },
-    "R1": {
-      "signature": "2027-08-19|MCO>LON",
-      "status": "ok",
-      "at": "2026-09-06T11:31:41.312Z",
-      "retired": false
-    },
-    "R2": {
-      "signature": "2027-08-19|TPA>LON",
-      "status": "ok",
-      "at": "2026-09-06T11:31:41.312Z",
-      "retired": false
-    },
-    "R3": {
-      "signature": "2027-08-22|MIA>LON",
-      "status": "ok",
       "at": "2026-09-06T11:31:41.312Z",
       "retired": false
     }

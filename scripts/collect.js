@@ -62,13 +62,14 @@ const historyRows = [];
 
 for (const s of searches) {
   const page = await context.newPage();
+  const directions = s.kind === 'round_trip' ? 2 : 1;
   const outcome = await googleFlights(page, {
     url: s.url,
     trip: cfg.trip,
     passengers: cfg.passengers,
+    directions,
   });
 
-  const directions = s.kind === 'round_trip' ? 2 : 1;
   const priced = outcome.offers
     .map((o) => ({
       ...o,
