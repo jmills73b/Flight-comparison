@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-06T22:47:14.761Z",
+  "generated_at": "2026-09-06T23:34:54.747Z",
   "trip": {
     "name": "Florida 2027",
     "adults": 2,
@@ -7,8 +7,8 @@
     "cabin": "economy",
     "currency": "GBP"
   },
-  "lastCollected": "2026-09-06T21:20:52.115Z",
-  "runCount": 6,
+  "lastCollected": "2026-09-06T23:29:44.437Z",
+  "runCount": 7,
   "carHire": {
     "apply": false,
     "estimate_gbp": 150,
@@ -25,27 +25,27 @@
     "into": "MCO",
     "homeFrom": "MCO",
     "isRoundTrip": true,
-    "current": 1812,
+    "current": 2096,
     "mode": "single_ticket",
-    "singleTicket": 1812,
+    "singleTicket": 2096,
     "splitTicket": null,
     "detail": {
       "provider": "british_airways",
-      "fare": 1812,
+      "fare": 2096,
       "bagCost": 0,
-      "trueTotal": 1812,
+      "trueTotal": 2096,
       "carrier": "BA",
-      "stops": 1,
-      "depLocal": "07:50",
-      "arrLocal": "16:20",
-      "durationMin": 810,
+      "stops": 0,
+      "depLocal": "14:30",
+      "arrLocal": "19:05",
+      "durationMin": 575,
       "deepLink": null
     },
     "firstSeen": {
       "at": "2026-09-06T17:20:44.580Z",
       "price": 1812
     },
-    "changeSinceFirst": 0,
+    "changeSinceFirst": 284,
     "series": [
       {
         "at": "2026-09-06T17:20:44.580Z",
@@ -55,6 +55,11 @@
       {
         "at": "2026-09-06T21:20:52.115Z",
         "price": 1812,
+        "mode": "single_ticket"
+      },
+      {
+        "at": "2026-09-06T23:29:44.437Z",
+        "price": 2096,
         "mode": "single_ticket"
       }
     ]
@@ -70,27 +75,27 @@
       "into": "MCO",
       "homeFrom": "MCO",
       "isRoundTrip": true,
-      "current": 1812,
+      "current": 2096,
       "mode": "single_ticket",
-      "singleTicket": 1812,
+      "singleTicket": 2096,
       "splitTicket": null,
       "detail": {
         "provider": "british_airways",
-        "fare": 1812,
+        "fare": 2096,
         "bagCost": 0,
-        "trueTotal": 1812,
+        "trueTotal": 2096,
         "carrier": "BA",
-        "stops": 1,
-        "depLocal": "07:50",
-        "arrLocal": "16:20",
-        "durationMin": 810,
+        "stops": 0,
+        "depLocal": "14:30",
+        "arrLocal": "19:05",
+        "durationMin": 575,
         "deepLink": null
       },
       "firstSeen": {
         "at": "2026-09-06T17:20:44.580Z",
         "price": 1812
       },
-      "changeSinceFirst": 0,
+      "changeSinceFirst": 284,
       "series": [
         {
           "at": "2026-09-06T17:20:44.580Z",
@@ -100,6 +105,11 @@
         {
           "at": "2026-09-06T21:20:52.115Z",
           "price": 1812,
+          "mode": "single_ticket"
+        },
+        {
+          "at": "2026-09-06T23:29:44.437Z",
+          "price": 2096,
           "mode": "single_ticket"
         }
       ]
@@ -162,6 +172,11 @@
         },
         {
           "at": "2026-09-06T21:20:52.115Z",
+          "price": 2888,
+          "mode": "single_ticket"
+        },
+        {
+          "at": "2026-09-06T23:29:44.437Z",
           "price": 2888,
           "mode": "single_ticket"
         }
@@ -227,6 +242,11 @@
           "at": "2026-09-06T21:20:52.115Z",
           "price": 2096,
           "mode": "single_ticket"
+        },
+        {
+          "at": "2026-09-06T23:29:44.437Z",
+          "price": 2096,
+          "mode": "single_ticket"
         }
       ]
     },
@@ -288,6 +308,11 @@
         },
         {
           "at": "2026-09-06T21:20:52.115Z",
+          "price": 2228,
+          "mode": "single_ticket"
+        },
+        {
+          "at": "2026-09-06T23:29:44.437Z",
           "price": 2228,
           "mode": "single_ticket"
         }
@@ -394,77 +419,77 @@
       "signature": "2027-08-11|LON>MCO|MCO>LON|2027-08-19",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-06T21:20:52.115Z",
+      "at": "2026-09-06T23:29:44.437Z",
       "retired": false
     },
     "A3": {
       "signature": "2027-08-11|LON>TPA|TPA>LON|2027-08-19",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-06T21:20:52.115Z",
+      "at": "2026-09-06T23:29:44.437Z",
       "retired": false
     },
     "A5": {
       "signature": "2027-08-12|LON>MCO|MCO>LON|2027-08-19",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-06T21:20:52.115Z",
+      "at": "2026-09-06T23:29:44.437Z",
       "retired": false
     },
     "A7": {
       "signature": "2027-08-12|LON>TPA|TPA>LON|2027-08-19",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-06T21:20:52.115Z",
+      "at": "2026-09-06T23:29:44.437Z",
       "retired": false
     },
     "O1": {
       "signature": "2027-08-11|LON>MCO",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-06T21:20:52.115Z",
+      "at": "2026-09-06T23:29:44.437Z",
       "retired": false
     },
     "O2": {
       "signature": "2027-08-11|LON>TPA",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-06T21:20:52.115Z",
+      "at": "2026-09-06T23:29:44.437Z",
       "retired": false
     },
     "O3": {
       "signature": "2027-08-12|LON>MCO",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-06T21:20:52.115Z",
+      "at": "2026-09-06T23:29:44.437Z",
       "retired": false
     },
     "O4": {
       "signature": "2027-08-12|LON>TPA",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-06T21:20:52.115Z",
+      "at": "2026-09-06T23:29:44.437Z",
       "retired": false
     },
     "R1": {
       "signature": "2027-08-19|MCO>LON",
-      "provider": "virgin_atlantic",
+      "provider": "skyscanner",
       "status": "skipped_provider_down",
-      "at": "2026-09-06T21:20:52.115Z",
+      "at": "2026-09-06T23:29:44.437Z",
       "retired": false
     },
     "R2": {
       "signature": "2027-08-19|TPA>LON",
-      "provider": "virgin_atlantic",
+      "provider": "skyscanner",
       "status": "skipped_provider_down",
-      "at": "2026-09-06T21:20:52.115Z",
+      "at": "2026-09-06T23:29:44.437Z",
       "retired": false
     },
     "R3": {
       "signature": "2027-08-22|MIA>LON",
-      "provider": "virgin_atlantic",
+      "provider": "skyscanner",
       "status": "skipped_provider_down",
-      "at": "2026-09-06T21:20:52.115Z",
+      "at": "2026-09-06T23:29:44.437Z",
       "retired": false
     }
   }
