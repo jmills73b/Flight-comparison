@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-06T11:37:40.067Z",
+  "generated_at": "2026-09-06T11:40:29.083Z",
   "trip": {
     "name": "Florida 2027",
     "adults": 3,
@@ -10,8 +10,8 @@
     "cabin": "economy",
     "currency": "GBP"
   },
-  "lastCollected": "2026-09-06T11:31:41.312Z",
-  "runCount": 1,
+  "lastCollected": "2026-09-06T11:39:13.291Z",
+  "runCount": 2,
   "carHire": {
     "apply": false,
     "estimate_gbp": 150,
@@ -253,49 +253,67 @@
     "A1": {
       "signature": "2027-08-11|LON>MCO|MCO>LON|2027-08-19",
       "status": "no_prices_rendered",
-      "at": "2026-09-06T11:31:41.312Z",
+      "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "A3": {
       "signature": "2027-08-11|LON>TPA|TPA>LON|2027-08-19",
       "status": "no_prices_rendered",
-      "at": "2026-09-06T11:31:41.312Z",
+      "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "A5": {
       "signature": "2027-08-12|LON>MCO|MCO>LON|2027-08-19",
       "status": "no_prices_rendered",
-      "at": "2026-09-06T11:31:41.312Z",
+      "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "A7": {
       "signature": "2027-08-12|LON>TPA|TPA>LON|2027-08-19",
       "status": "no_prices_rendered",
-      "at": "2026-09-06T11:31:41.312Z",
+      "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "O1": {
       "signature": "2027-08-11|LON>MCO",
       "status": "no_prices_rendered",
-      "at": "2026-09-06T11:31:41.312Z",
+      "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "O2": {
       "signature": "2027-08-11|LON>TPA",
       "status": "no_prices_rendered",
-      "at": "2026-09-06T11:31:41.312Z",
+      "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "O3": {
       "signature": "2027-08-12|LON>MCO",
       "status": "no_prices_rendered",
-      "at": "2026-09-06T11:31:41.312Z",
+      "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     },
     "O4": {
       "signature": "2027-08-12|LON>TPA",
       "status": "no_prices_rendered",
-      "at": "2026-09-06T11:31:41.312Z",
+      "at": "2026-09-06T11:39:13.291Z",
+      "retired": false
+    },
+    "R1": {
+      "signature": "2027-08-19|MCO>LON",
+      "status": "no_prices_rendered",
+      "at": "2026-09-06T11:39:13.291Z",
+      "retired": false
+    },
+    "R2": {
+      "signature": "2027-08-19|TPA>LON",
+      "status": "no_prices_rendered",
+      "at": "2026-09-06T11:39:13.291Z",
+      "retired": false
+    },
+    "R3": {
+      "signature": "2027-08-22|MIA>LON",
+      "status": "no_offers_parsed",
+      "at": "2026-09-06T11:39:13.291Z",
       "retired": false
     }
   }
