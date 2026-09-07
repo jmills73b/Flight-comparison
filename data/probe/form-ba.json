@@ -1,0 +1,602 @@
+{
+  "inputs": [
+    {
+      "tag": "select",
+      "testid": "dropdown-fareSelector",
+      "id": "fareSelector",
+      "label": "Select your trip. Currently selected Return trip.",
+      "text": "Return tripOne way",
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "type": "text",
+      "testid": "undefined-input",
+      "id": "from",
+      "name": "from",
+      "label": "input",
+      "placeholder": "Departure city",
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "type": "text",
+      "testid": "undefined-input",
+      "id": "to",
+      "name": "to",
+      "label": "input",
+      "placeholder": "Where can we take you?",
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "testid": "input-calendar-input-departuredate",
+      "id": "departureDate",
+      "placeholder": "dd/mm/yyyy",
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "testid": "input-calendar-input-arrivaldate",
+      "id": "arrivalDate",
+      "placeholder": "dd/mm/yyyy",
+      "visible": true
+    },
+    {
+      "tag": "select",
+      "testid": "dropdown-travelClass",
+      "id": "travelClass",
+      "label": "Select a travel class. Currently selected Economy",
+      "text": "EconomyPremium EconomyBusinessFirst",
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "type": "number",
+      "testid": "flight-search-less-plus-input-adults",
+      "id": "flight-search-less-plus-input-adults",
+      "label": "Adults. 16+ years. Currently selected 1",
+      "role": "spinbutton",
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "type": "number",
+      "testid": "flight-search-less-plus-input-youngAdults",
+      "id": "flight-search-less-plus-input-youngAdults",
+      "label": "Young Adults. 12-15 years. Currently selected 0",
+      "role": "spinbutton",
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "type": "number",
+      "testid": "flight-search-less-plus-input-children",
+      "id": "flight-search-less-plus-input-children",
+      "label": "Children. 2-11 years. Currently selected 0",
+      "role": "spinbutton",
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "type": "number",
+      "testid": "flight-search-less-plus-input-infants",
+      "id": "flight-search-less-plus-input-infants",
+      "label": "Infants. under 2 years. Currently selected 0",
+      "role": "spinbutton",
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "id": "defaultSlide",
+      "name": "defaultSlide",
+      "visible": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "id": "AnalyticsSlide",
+      "name": "AnalyticsSlide",
+      "visible": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "id": "MarketingSlide",
+      "name": "MarketingSlide",
+      "visible": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "id": "FunctionalSlide",
+      "name": "FunctionalSlide",
+      "visible": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "id": "ot-group-id-C0002",
+      "name": "ot-group-id-C0002",
+      "visible": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "id": "ot-group-id-C0003",
+      "name": "ot-group-id-C0003",
+      "visible": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "id": "ot-group-id-C0004",
+      "name": "ot-group-id-C0004",
+      "visible": false
+    },
+    {
+      "tag": "input",
+      "type": "text",
+      "id": "vendor-search-handler",
+      "name": "vendor-search-handler",
+      "label": "Cookie list search",
+      "placeholder": "Search…",
+      "visible": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "id": "chkbox-id",
+      "visible": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "id": "select-all-hosts-groups-handler",
+      "visible": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "id": "select-all-vendor-groups-handler",
+      "visible": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "id": "select-all-vendor-leg-handler",
+      "visible": false
+    }
+  ],
+  "buttons": [
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "accept-button--button",
+      "id": "accept-button",
+      "text": "I'm in USA",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "dismiss-button--button",
+      "id": "dismiss-button",
+      "text": "Close",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "text": "Close",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "id": "Discover",
+      "text": "Discover",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "Book",
+      "text": "Book",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "Manage",
+      "text": "Manage",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "Help",
+      "text": "Help",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "Search",
+      "text": "Search",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "testid": "header-mobile-menu-button",
+      "id": "header-mobile-menu-button",
+      "text": "Menu",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "undefined--button",
+      "text": "Help Centre",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "sale-offer-hero-variant-cta-button",
+      "text": "Search the sale",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "sale-offer-hero-variant-cta-button",
+      "text": "Search the sale",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "amex-offer-hero-variant-cta-button",
+      "text": "Apply now",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "amex-offer-hero-variant-cta-button-mobile",
+      "text": "Apply now",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "sale-offer-hero-variant-cta-button",
+      "text": "Search the sale",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "testid": "carousel-button-left",
+      "label": "Previous slide",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "testid": "carrousel-bullet-0",
+      "label": "Slide 1",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "testid": "carrousel-bullet-1",
+      "label": "Slide 2",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "testid": "carrousel-bullet-2",
+      "label": "Slide 3",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "testid": "carrousel-bullet-3",
+      "label": "Slide 4",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "testid": "carousel-button-right",
+      "label": "Next slide",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "flight-search-tabs-li-flights",
+      "id": "tab-0",
+      "label": "Search flights. option selected.",
+      "text": "Flights",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "flight-search-tabs-li-multi-city",
+      "id": "tab-1",
+      "label": "Search Multi city.",
+      "text": "Multi-city",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "input-calendar-icon-departuredate",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "input-calendar-icon-arrivaldate",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "FormGroupDropdown-passenger-selector-dropdown",
+      "id": "passenger-selector",
+      "label": "Select the type and number of passengers. Currently selected 1 Adult.",
+      "text": "1 Adult",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "flight-search-less-plus-button-adults-rest",
+      "label": "Remove Adults",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "flight-search-less-plus-button-adults-add",
+      "label": "Add more Adults",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "flight-search-less-plus-button-youngAdults-rest",
+      "label": "Remove Young Adults",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "flight-search-less-plus-button-youngAdults-add",
+      "label": "Add more Young Adults",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "flight-search-less-plus-button-children-rest",
+      "label": "Remove Children",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "flight-search-less-plus-button-children-add",
+      "label": "Add more Children",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "flight-search-less-plus-button-infants-rest",
+      "label": "Remove Infants",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "flight-search-less-plus-button-infants-add",
+      "label": "Add more Infants",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "passenger-selector-done--button",
+      "id": "passenger-selector-done",
+      "text": "Done",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "submit",
+      "testid": "flight-search-tab-inputs-flights-button-find-flights--button",
+      "id": "flight-search-tab-inputs-flights-button-find-flights",
+      "text": "Find flights",
+      "visible": true
+    },
+    {
+      "tag": "a",
+      "testid": "flight-tab-custom-find-your-next-adventure--link",
+      "label": "Browse flight deals for your next adventure",
+      "text": "Find your next adventureopens in new tab",
+      "visible": true
+    },
+    {
+      "tag": "span",
+      "role": "button",
+      "text": "Find your next adventure",
+      "visible": true
+    },
+    {
+      "tag": "span",
+      "role": "button",
+      "text": "Book using a voucher or promotional code",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "amex-offer-hero-variant-cta-button",
+      "text": "Apply now",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "testid": "amex-offer-hero-variant-cta-button-mobile",
+      "text": "Apply now",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "text": "Manage booking",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "text": "Check in",
+      "visible": true
+    },
+    {
+      "tag": "a",
+      "testid": "middle-button-see-flight-status",
+      "label": "See flight status",
+      "text": "See flight status",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "text": "See flight status",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "ensAcceptAll",
+      "label": "Accept All",
+      "text": "Accept All",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "id": "ensOpenModal",
+      "label": "Customise",
+      "text": "Customise",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "id": "ensCloseBanner",
+      "label": "Reject All",
+      "text": "Reject All",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "id": "ensSave",
+      "label": "Confirm your choices",
+      "text": "Confirm your choices",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "id": "ensCancel",
+      "label": "Accept all cookies",
+      "text": "Accept all cookies",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "id": "onetrust-accept-btn-handler",
+      "text": "Accept All",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "onetrust-pc-btn-handler",
+      "label": "Customise, Opens the preference center dialog",
+      "text": "Customise",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "onetrust-reject-all-handler",
+      "text": "Reject All",
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "close-pc-btn-handler",
+      "label": "Close preference center",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "label": "Back",
+      "text": "Back Button",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "id": "filter-btn-handler",
+      "label": "Filter Cookie List",
+      "text": "Filter Icon",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "id": "clear-filters-handler",
+      "text": "Clear",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "id": "filter-apply-handler",
+      "text": "Apply",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "id": "filter-cancel-handler",
+      "text": "Cancel",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "id": "accept-recommended-btn-handler",
+      "text": "Accept All",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "text": "Save your preferences",
+      "visible": false
+    },
+    {
+      "tag": "button",
+      "text": "Reject All",
+      "visible": false
+    }
+  ],
+  "customElements": [
+    "next-route-announcer"
+  ]
+}
