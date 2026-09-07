@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: 'Run a single search id (e.g. O1). Leave blank for all.'
+        description: 'Run a single search id (e.g. O1), or with a probe, comma-separated probe case ids. Blank for all.'
         required: false
         type: string
       probe:
@@ -84,11 +84,10 @@ jobs:
           if [ "${{ inputs.probe_forms }}" = "true" ]; then
             xvfb-run -a node scripts/probe-forms.js
           elif [ "${{ inputs.probe_airlines }}" = "true" ]; then
-            if [ -n "${{ inputs.probe_profiles }}" ]; then
-              xvfb-run -a node scripts/probe-airlines.js --profiles "${{ inputs.probe_profiles }}"
-            else
-              xvfb-run -a node scripts/probe-airlines.js
-            fi
+            args=""
+            [ -n "${{ inputs.probe_profiles }}" ] && args="$args --profiles ${{ inputs.probe_profiles }}"
+            [ -n "${{ inputs.only }}" ] && args="$args --only ${{ inputs.only }}"
+            xvfb-run -a node scripts/probe-airlines.js $args
           elif [ "${{ inputs.probe }}" = "true" ]; then
             xvfb-run -a node scripts/collect.js --probe
           elif [ -n "${{ inputs.only }}" ]; then

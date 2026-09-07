@@ -29,6 +29,7 @@ import {
   searchBA, searchVirgin, baUrl, virginUrl,
   PROVIDER_BA, PROVIDER_VS,
 } from './providers/airline-direct.js';
+import { searchVirginByForm } from './providers/virgin-form.js';
 
 const cfg = loadConfig();
 const args = process.argv.slice(2);
@@ -70,6 +71,29 @@ const CASES = [
     url: () => virginUrl(cfg.trip, cfg.party, {
       from: 'LON', to: 'TPA', out: '2027-07-22', back: '2027-07-29',
     }),
+  },
+  {
+    // The two that matter. Virgin's deep links are rejected outright, so these
+    // drive its own form instead — and Virgin is the only remaining route to
+    // the eight open jaws, since BA will not quote a US-origin leg in GBP.
+    id: 'vs-form-return',
+    label: 'VS · FORM · return · LON ⇄ TPA',
+    provider: PROVIDER_VS,
+    form: true,
+    legs: [
+      { from: 'LON', to: 'TPA', date: '2027-07-22' },
+      { from: 'TPA', to: 'LON', date: '2027-07-29' },
+    ],
+  },
+  {
+    id: 'vs-form-openjaw',
+    label: 'VS · FORM · open jaw · LON → TPA, MIA → LON (the Shape B shape)',
+    provider: PROVIDER_VS,
+    form: true,
+    legs: [
+      { from: 'LON', to: 'TPA', date: '2027-07-22' },
+      { from: 'MIA', to: 'LON', date: '2027-08-01' },
+    ],
   },
   {
     id: 'vs-openjaw',
@@ -124,7 +148,14 @@ function watchNetwork(page) {
   return calls;
 }
 
-const cases = only ? CASES.filter((c) => c.id === only) : CASES;
+// Comma separated, because the interesting question is usually two or three
+// cases and a full sweep costs minutes per case.
+const wanted = only ? only.split(',').map((x) => x.trim()) : null;
+const cases = wanted ? CASES.filter((c) => wanted.includes(c.id)) : CASES;
+if (wanted && !cases.length) {
+  console.error(`No case matched "${only}". Known: ${CASES.map((c) => c.id).join(', ')}`);
+  process.exit(2);
+}
 
 // The sweep proved the browser profile makes no difference to any of these
 // four cases, so one profile is the default and the full sweep is opt-in —
@@ -162,9 +193,9 @@ for (const profileName of profiles) {
   console.log(`══ ${describeLaunch(launched)}\n`);
 
   for (const c of cases) {
-    const url = c.url();
+    const url = c.form ? null : c.url();
     console.log(`── ${c.label}`);
-    console.log(`   ${url}`);
+    console.log(c.form ? `   (driving the search form — no URL)` : `   ${url}`);
 
     const page = await context.newPage();
     const calls = watchNetwork(page);
@@ -175,7 +206,15 @@ for (const profileName of profiles) {
     // eat the whole budget is worse than no diagnostic. Four minutes is well
     // clear of BA multi-city's 112 second wait.
     const r = await Promise.race([
-      c.run(page, { url, trip: cfg.trip, passengers: cfg.passengers, timeoutMs: 45000 }),
+      c.form
+        ? searchVirginByForm(page, {
+            trip: cfg.trip,
+            party: cfg.party,
+            passengers: cfg.passengers,
+            legs: c.legs,
+            timeoutMs: 45000,
+          })
+        : c.run(page, { url, trip: cfg.trip, passengers: cfg.passengers, timeoutMs: 45000 }),
       new Promise((resolve) =>
         setTimeout(
           () => resolve({ status: 'probe_timeout', reason: 'case exceeded 4 minutes', offers: [] }),
