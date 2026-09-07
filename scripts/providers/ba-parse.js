@@ -69,7 +69,15 @@ export function parseBaOffer(text, testid, { passengers, minPerPassenger = 50 })
     isEstimate: true,
     carrier: 'BA',
     carrierName: operator ? operator[1].trim() : 'British Airways',
-    fareBrand: null,
+    // BA's results page quotes "Price per passenger FROM £587 ... 3 cabins are
+    // available" — the cheapest brand, which is Economy Basic and carries no
+    // hold luggage. Fare brands are not priced here at all; the only mentions
+    // of "Economy Standard" in the page are i18n template strings. Naming the
+    // brand honestly matters because carrier-fees.yml treats an unknown BA
+    // brand as bag-included, which would understate the real cost twice over:
+    // once for the teaser price, once for the missing bag.
+    fareBrand: 'Economy Basic (lowest available)',
+    isFromPrice: true,
     stops,
     isDirect: saysDirect,
     depLocal: dep ? dep[2] : null,
