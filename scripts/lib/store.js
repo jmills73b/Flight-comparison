@@ -1,5 +1,8 @@
 import { gzipSync } from 'node:zlib';
-import { mkdirSync, writeFileSync, appendFileSync, existsSync, readFileSync } from 'node:fs';
+import {
+  mkdirSync, writeFileSync, appendFileSync, existsSync, readFileSync,
+  readdirSync, statSync, rmSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './config.js';
 
@@ -51,6 +54,45 @@ export function writeSnapshot(stamp, payload) {
  * run would dominate the repository size for no benefit, but on a failure it
  * is the only way to work out what changed.
  */
+/**
+ * Debug HTML is the only thing here that grows dangerously.
+ *
+ * Measured: 39 captures in six runs, 7.3 MB gzipped, averaging 191 KB each.
+ * Projected over 337 days at two runs a day that is roughly 800 MB — past
+ * GitHub's 1 GB comfort threshold, and all of it to diagnose failures that
+ * were fixed months earlier. The price data itself is negligible by
+ * comparison: snapshots are about 2 KB each and history.csv is a few hundred
+ * KB over the whole trip.
+ *
+ * So captures older than the retention window are deleted on every run. Recent
+ * failures are what you actually debug from; last spring's are dead weight.
+ */
+const DEBUG_RETENTION_DAYS = 14;
+
+export function pruneDebug(now = new Date()) {
+  if (!existsSync(DEBUG_DIR)) return { removed: 0, freedBytes: 0 };
+  const cutoff = now.getTime() - DEBUG_RETENTION_DAYS * 86400000;
+  let removed = 0;
+  let freedBytes = 0;
+  for (const name of readdirSync(DEBUG_DIR)) {
+    // Files are named YYYY-MM-DD-HHmm-<id>-<provider>.html.gz
+    const m = name.match(/^(\d{4})-(\d{2})-(\d{2})-/);
+    if (!m) continue;
+    const when = Date.parse(`${m[1]}-${m[2]}-${m[3]}T00:00:00Z`);
+    if (Number.isFinite(when) && when < cutoff) {
+      const full = join(DEBUG_DIR, name);
+      try {
+        freedBytes += statSync(full).size;
+        rmSync(full);
+        removed++;
+      } catch {
+        /* already gone */
+      }
+    }
+  }
+  return { removed, freedBytes };
+}
+
 export function writeDebugHtml(stamp, searchId, html) {
   mkdirSync(DEBUG_DIR, { recursive: true });
   const file = join(DEBUG_DIR, `${stamp}-${searchId}.html.gz`);

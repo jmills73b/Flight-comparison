@@ -7,6 +7,7 @@ import {
   writeSnapshot,
   writeDebugHtml,
   appendHistory,
+  pruneDebug,
 } from './lib/store.js';
 import { search as googleFlights, PROVIDER } from './providers/google-flights.js';
 import { search as skyscanner, PROVIDER as SKYSCANNER } from './providers/skyscanner.js';
@@ -377,6 +378,14 @@ const snapshot = {
   searches: results,
   itineraries,
 };
+
+const pruned = pruneDebug();
+if (pruned.removed) {
+  console.log(
+    `Pruned    ${pruned.removed} debug captures older than 14 days ` +
+      `(${(pruned.freedBytes / 1048576).toFixed(1)} MB)`
+  );
+}
 
 const snapFile = writeSnapshot(stamp, snapshot);
 const written = appendHistory(historyRows);
