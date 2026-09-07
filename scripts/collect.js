@@ -183,10 +183,21 @@ const historyRows = [];
  * failures with no offer at all is sufficient evidence; stop asking, and
  * record why so the dashboard shows the provider as tripped rather than
  * silently absent.
+ *
+ * KEYED BY PROVIDER **AND SEARCH KIND**, which is not a refinement — it is a
+ * bug fix worth eight itineraries. British Airways answers one-way and return
+ * searches reliably and has never once answered an open jaw. Keyed by provider
+ * alone, the two open-jaw failures tripped BA for the whole run, so the
+ * one-way legs it would happily have priced were skipped instead. The run then
+ * reported "4/12 itineraries priced" and looked like a market problem rather
+ * than a self-inflicted one. A provider that cannot do open jaws should stop
+ * being asked for open jaws, not stop being asked at all.
  */
 const FAILURES_BEFORE_GIVING_UP = 2;
 const consecutiveFailures = {};
 const tripped = {};
+/** What the breaker actually trips: this provider doing this kind of search. */
+const breakerKey = (provider, kind) => `${provider}:${kind}`;
 
 for (const s of searches) {
   const page = await context.newPage();
@@ -206,9 +217,10 @@ for (const s of searches) {
   const attempts = [];
   for (const p of providers) {
     if (!p.url) continue;
-    if (tripped[p.name]) {
+    const key = breakerKey(p.name, s.kind);
+    if (tripped[key]) {
       attempts.push({ provider: p.name, status: 'skipped_provider_down', offers: [],
-                      reason: tripped[p.name] });
+                      reason: tripped[key] });
       continue;
     }
 
@@ -221,16 +233,16 @@ for (const s of searches) {
     attempts.push({ provider: p.name, ...r });
 
     if (r.status === 'ok') {
-      consecutiveFailures[p.name] = 0;
+      consecutiveFailures[key] = 0;
     } else {
-      consecutiveFailures[p.name] = (consecutiveFailures[p.name] ?? 0) + 1;
-      if (consecutiveFailures[p.name] >= FAILURES_BEFORE_GIVING_UP) {
-        tripped[p.name] = `${consecutiveFailures[p.name]} consecutive failures (last: ${r.status})`;
-        console.log(`  ! ${p.name} given up on for this run — ${tripped[p.name]}`);
+      consecutiveFailures[key] = (consecutiveFailures[key] ?? 0) + 1;
+      if (consecutiveFailures[key] >= FAILURES_BEFORE_GIVING_UP) {
+        tripped[key] = `${consecutiveFailures[key]} consecutive ${s.kind} failures (last: ${r.status})`;
+        console.log(`  ! ${p.name} given up on for ${s.kind} searches this run — ${tripped[key]}`);
       }
-      // Only the first failure per provider is worth keeping HTML for; after
+      // Only the first failure of each kind is worth keeping HTML for; after
       // that it is the same page over and over.
-      if (r.html && consecutiveFailures[p.name] === 1) {
+      if (r.html && consecutiveFailures[key] === 1) {
         writeDebugHtml(stamp, `${s.id}-${p.name}`, r.html);
       }
     }

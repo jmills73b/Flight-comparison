@@ -272,6 +272,20 @@ error bodies, to `data/probe/<case>.<profile>.network.json` — because a
 single-page app that shows a shell and never a price is failing in a request,
 and the saved HTML cannot show which one.
 
+### The breaker was disabling a source that worked
+
+A second bug, found while reading why the dashboard said "4/12 itineraries
+priced". The circuit breaker was keyed by provider alone. British Airways
+answers one-way and return searches reliably and has never once answered an
+open jaw — so its two open-jaw failures tripped BA for the entire run, and the
+one-way legs it would happily have priced were skipped. Since every open jaw is
+already composed from two one-way legs (`composeSplitTicket`), those skips cost
+the eight open-jaw itineraries their prices, and the run reported a market
+problem that was actually self-inflicted.
+
+The breaker is now keyed by provider **and search kind**. A provider that
+cannot do open jaws stops being asked for open jaws, not for everything.
+
 One bug came out of this that mattered more than the sweep: the Virgin
 rejection was being reported as `no_prices_rendered`. The check for it ran at
 `domcontentloaded`, when the body is still an empty shell, so it never saw the
