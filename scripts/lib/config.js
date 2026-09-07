@@ -19,6 +19,38 @@ function isoDate(value) {
   return s;
 }
 
+/**
+ * How far ahead airlines currently sell.
+ *
+ * Observed, not assumed: on 7 September 2026 the furthest bookable return was
+ * 26 August 2027, which is 353 days. The window advances by one day each day,
+ * so a target beyond it becomes reachable on its own without any edit here.
+ */
+const BOOKING_HORIZON_DAYS = 353;
+
+function addDays(iso, days) {
+  return new Date(Date.parse(`${iso}T00:00:00Z`) + days * 86400000)
+    .toISOString()
+    .slice(0, 10);
+}
+
+/**
+ * A return date that is wanted but not yet on sale falls back to the furthest
+ * date that is, rolling forward daily until the target comes into range and
+ * then locking onto it.
+ *
+ * The fallback is a genuinely different trip — a different return date is a
+ * different length of holiday — so it is flagged provisional. That keeps its
+ * prices out of the target date's series instead of splicing several different
+ * holidays into one line that looks continuous.
+ */
+function resolveReturnDate(target, rollUntilAvailable, today) {
+  if (!rollUntilAvailable) return { date: target, provisional: false, target };
+  const furthest = addDays(today, BOOKING_HORIZON_DAYS);
+  if (target <= furthest) return { date: target, provisional: false, target };
+  return { date: furthest, provisional: true, target };
+}
+
 function nightsBetween(from, to) {
   const ms = Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`);
   return Math.round(ms / 86400000);
@@ -41,13 +73,18 @@ const legSignature = (l) => `${l.date}|${l.from}>${l.to}`;
  * arrival airport, and open jaws follow — which is why A1 is MCO/MCO and A2 is
  * MCO/TPA rather than an arbitrary order.
  */
-function buildItineraries(outbound, returns) {
+function buildItineraries(outbound, returns, today) {
   const itineraries = [];
   const counters = {};
 
   for (const ret of returns) {
     const shape = ret.shape;
-    const back = isoDate(ret.date);
+    const resolved = resolveReturnDate(
+      isoDate(ret.date),
+      ret.roll_until_available === true,
+      today
+    );
+    const back = resolved.date;
 
     for (const out of outbound.dates.map(isoDate)) {
       for (const into of outbound.into) {
@@ -69,6 +106,11 @@ function buildItineraries(outbound, returns) {
             home_from,
             nights: nightsBetween(out, back),
             isRoundTrip: into === home_from,
+            // True while searching a stand-in date because the wanted one is
+            // not on sale yet. The dashboard must not present these as the
+            // trip you are actually pricing.
+            provisionalDate: resolved.provisional,
+            targetBack: resolved.target,
           };
           it.signature = itinerarySignature(it);
           itineraries.push(it);
@@ -108,13 +150,17 @@ function buildLegs(itineraries) {
 }
 
 /** TUI sells matched same-airport return rotations from Gatwick. */
-function buildTuiSearches(tui, outbound, returns) {
+function buildTuiSearches(tui, outbound, returns, today) {
   if (!tui) return [];
   const ret = returns.find((r) => r.shape === tui.return_shape);
   if (!ret) {
     throw new Error(`TUI references return shape "${tui.return_shape}", which does not exist`);
   }
-  const back = isoDate(ret.date);
+  const back = resolveReturnDate(
+    isoDate(ret.date),
+    ret.roll_until_available === true,
+    today
+  ).date;
   const searches = [];
   let n = 0;
 
@@ -128,7 +174,9 @@ function buildTuiSearches(tui, outbound, returns) {
         out,
         back,
         nights,
-        rotationFit: nights === tui.preferred_nights,
+        rotationFit: Array.isArray(tui.preferred_nights)
+          ? tui.preferred_nights.includes(nights)
+          : nights === tui.preferred_nights,
       });
     }
   }
@@ -187,7 +235,7 @@ export function bucketParty(trip) {
   };
 }
 
-export function loadConfig() {
+export function loadConfig(today = new Date().toISOString().slice(0, 10)) {
   const searches = readYaml('config/searches.yml');
   const fees = readYaml('config/carrier-fees.yml');
   const trip = searches.trip;
@@ -201,9 +249,9 @@ export function loadConfig() {
     );
   }
 
-  const itineraries = buildItineraries(searches.outbound, searches.returns);
+  const itineraries = buildItineraries(searches.outbound, searches.returns, today);
   const legs = buildLegs(itineraries);
-  const tui = buildTuiSearches(searches.tui, searches.outbound, searches.returns);
+  const tui = buildTuiSearches(searches.tui, searches.outbound, searches.returns, today);
 
   validateLegCoverage(itineraries, legs);
 

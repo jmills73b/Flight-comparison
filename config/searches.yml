@@ -68,12 +68,25 @@ outbound:
 # ---------------------------------------------------------------------------
 returns:
   - shape: A
-    date: 2027-08-19    # Thursday
+    date: 2027-08-26    # Thursday — locked in
     from: [MCO, TPA]
 
   - shape: B
-    date: 2027-08-22    # Sunday
+    # The date actually wanted, flying home from Miami. Not yet bookable:
+    # airlines only sell about 353 days ahead, so on 7 Sep 2026 the furthest
+    # date on sale was 26 Aug 2027, and it advances by one day each day.
+    date: 2027-08-29    # Sunday — the target
     from: [MIA]
+    # Until the target comes into range, search the furthest date that IS
+    # bookable, which rolls forward automatically. No daily edit needed: on
+    # 8 Sep it searches the 27th, on the 9th the 28th, and from the 10th it
+    # locks onto the 29th and stays there.
+    #
+    # Those interim searches are each a DIFFERENT trip — a different return
+    # date is a different length of holiday — so they are marked provisional
+    # and get their own short-lived price series rather than being spliced
+    # into one misleading line.
+    roll_until_available: true
 
 # ---------------------------------------------------------------------------
 # TUI charter. Gatwick only — TUI does not operate from Heathrow.
@@ -94,7 +107,11 @@ tui:
   airport: LGW
   destinations: [MCO, SFB, TPA]
   return_shape: A
-  preferred_nights: 7
+  # Charter sells whole-week rotations, so both 7 and 14 nights fit. With the
+  # return locked to 26 August, flying out on the 12th is exactly 14 nights —
+  # a proper fortnight rotation, which puts TUI genuinely in play rather than
+  # being a long shot.
+  preferred_nights: [7, 14]
 
 # Human-readable airport names, used in search text and on the dashboard.
 airports:
