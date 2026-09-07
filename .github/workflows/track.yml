@@ -16,6 +16,11 @@ on:
         required: false
         default: false
         type: boolean
+      probe_airlines:
+        description: 'Diagnostic: run BA and Virgin against dates known to be bookable, and save the pages. Writes no price history.'
+        required: false
+        default: false
+        type: boolean
 
 # Never let two runs write to the repository at once.
 concurrency:
@@ -47,7 +52,9 @@ jobs:
         id: collect
         continue-on-error: true
         run: |
-          if [ "${{ inputs.probe }}" = "true" ]; then
+          if [ "${{ inputs.probe_airlines }}" = "true" ]; then
+            node scripts/probe-airlines.js
+          elif [ "${{ inputs.probe }}" = "true" ]; then
             node scripts/collect.js --probe
           elif [ -n "${{ inputs.only }}" ]; then
             node scripts/collect.js --only "${{ inputs.only }}"
