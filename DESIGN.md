@@ -272,6 +272,38 @@ error bodies, to `data/probe/<case>.<profile>.network.json` — because a
 single-page app that shows a shell and never a price is failing in a request,
 and the saved HTML cannot show which one.
 
+### Virgin is blocked by IP, not by anything in this code
+
+The form driving worked. Multi-city was selected, "London" was typed into the
+right field, and Virgin's own page then called its own API:
+
+```
+444 GET /travelplus/search-panel-api/airports/predictive/by-term?term=London
+    <TITLE>Access Denied</TITLE>
+    You don't have permission to access this server.
+```
+
+One request out of thirty-six failed, and it is the only one that matters. The
+header and footer content APIs answered normally, and the homepage rendered
+sixty-six prices. So Virgin serves marketing content to a datacentre address
+quite happily and refuses its **search** APIs from one. That is also why the
+captured deep link was rejected: the same block on a different surface, which
+looked like a session problem and was not.
+
+**No change to this code can fix that.** Not a selector, not a stealth profile,
+not a parser. The request is refused before Virgin's application sees it, on
+the strength of where it came from. Skyscanner behaves the same way, which is
+consistent — GitHub's runners sit in Azure ranges that both vendors block
+wholesale. British Airways does not block them, which is why it works.
+
+The one remaining lever is therefore **where the collector runs**, not what it
+does. From a residential connection — a laptop, a Pi, anything at home — the
+same code would very likely be served, because it would no longer be coming
+from a datacentre. That is a hypothesis, not a finding: it is grounded in the
+denial being IP-based, but it has not been tested, and one run on such a
+machine would settle it. Everything needed is already here: `npm run collect`
+is the whole job, and results reach the dashboard by git push.
+
 ### Why the return legs "had no prices": they were in dollars
 
 With the breaker fixed, BA's outbound one-ways (O1–O4) price fine and its four
