@@ -272,6 +272,34 @@ error bodies, to `data/probe/<case>.<profile>.network.json` — because a
 single-page app that shows a shell and never a price is failing in a request,
 and the saved HTML cannot show which one.
 
+### Why the return legs "had no prices": they were in dollars
+
+With the breaker fixed, BA's outbound one-ways (O1–O4) price fine and its four
+round trips price fine — but every return leg (MCO→LON, TPA→LON, MIA→LON) came
+back `no_prices_rendered`, which is what kept the eight open jaws unpriced.
+
+The saved page shows the search was never the problem. It is a complete,
+correct page: four direct flights, Thursday 26 August, four passengers,
+"Prices are per adult, including all taxes". The prices are simply in **US
+dollars** — `$618`, `$1,223`. BA prices by point of sale and a US origin flips
+it, even on the `en/gbr` path whose own config says `"market":"gb"`. Neither
+that page nor a working GBP one carries any currency field or selector, so
+there is no parameter to flip; it follows the origin.
+
+The pattern required a pound sign, so those pages parsed as "no prices". That
+was the right outcome for the wrong reason, and the distinction matters: had
+the pattern been loosened to match any number — the obvious "fix" for a page
+that visibly has prices on it — every return leg would have been recorded as
+pounds at roughly a fifth under its true cost, and nothing would have looked
+wrong. The parser now captures the symbol, and a page quoting a currency the
+trip does not use fails as `wrong_currency`, by name. Nothing is converted:
+there is no free rate source here, and an invented rate is worse than a gap
+because it looks real.
+
+This means **a US-origin one-way cannot be priced in GBP from BA**, so the
+eight open jaws need either a working multi-city search or Virgin. Which is
+what the form-driving work is for.
+
 ### The breaker was disabling a source that worked
 
 A second bug, found while reading why the dashboard said "4/12 itineraries

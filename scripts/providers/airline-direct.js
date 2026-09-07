@@ -334,6 +334,35 @@ function makeAdapter(key) {
               : o.priceBasis,
           }));
 
+        // A price in another currency is not a cheap price, it is a different
+        // number. BA prices by point of sale, so a one-way MCO→LON search
+        // comes back in US dollars — a complete, correct page that simply
+        // is not quoting what this tracker records. Refuse it by name: there
+        // is no free exchange rate source here, and a converted figure with an
+        // invented rate would be worse than a gap because it would look real.
+        const wrongCurrency = offers.filter((o) => o.currency && o.currency !== trip.currency);
+        if (wrongCurrency.length && wrongCurrency.length === offers.length) {
+          return fail(
+            'wrong_currency',
+            `BA quoted ${offers.length} fares in ${wrongCurrency[0].currency}, not ` +
+              `${trip.currency} — a US point of sale. The flights are real and the ` +
+              `page is correct; the money is not the money this tracker records.`,
+            page,
+            started
+          );
+        }
+        // A mixed page has never been seen and would mean the parse is wrong
+        // about at least one row, so it is not quietly half-used.
+        if (wrongCurrency.length) {
+          return fail(
+            'mixed_currency',
+            `BA quoted ${wrongCurrency.length} of ${offers.length} fares in a ` +
+              `currency other than ${trip.currency}.`,
+            page,
+            started
+          );
+        }
+
         // A tax-exclusive figure is not comparable with the tax-inclusive ones
         // the rest of the tracker records, so it is not passed off as one.
         if (excludesTaxes && offers.length) {

@@ -66,8 +66,25 @@ const DEPARTURE =
 const ARRIVAL =
   /Arrives on [A-Za-z]+,? (\d{1,2} [A-Za-z]+ \d{4}), at (\d{1,2}:\d{2}) to ([^,.]+?) airport (.+?)\. Duration/i;
 const DURATION = /Duration of the flight (\d+) hours?(?: and (\d+) minutes?)? with (\d+) stops?/i;
-const PRICE_PER_PASSENGER = /Price per passenger from £\s?([\d,]+)/i;
-const PRICE_WHOLE_PARTY = /Price for all passengers from £\s?([\d,]+)/i;
+/**
+ * The currency symbol is CAPTURED, not assumed.
+ *
+ * A one-way MCO→LON search returns a perfectly good page — four direct
+ * flights, the right date, the right four passengers — priced in US DOLLARS.
+ * BA prices by point of sale, and a US origin flips it, even on the en/gbr
+ * path with market "gb" in the page's own config.
+ *
+ * The pattern used to require a pound sign, so those pages parsed as "no
+ * prices rendered" and the return legs looked unavailable when they were
+ * merely quoted in the wrong money. That was the right failure for the wrong
+ * reason — and it is worth being precise about which: had the pattern instead
+ * been loosened to match any number, every return leg would have been recorded
+ * as pounds at roughly a fifth under its real cost, and nothing would have
+ * looked wrong at all. Capturing the symbol keeps both mistakes off the table.
+ */
+const PRICE_PER_PASSENGER = /Price per passenger from ([£$€])\s?([\d,]+)/i;
+const PRICE_WHOLE_PARTY = /Price for all passengers from ([£$€])\s?([\d,]+)/i;
+const CURRENCY_OF = { '£': 'GBP', $: 'USD', '€': 'EUR' };
 const OPERATOR = /Operated by ([^.]+)\./i;
 /** Trailing "Gatwick LGW Orlando International (FL) MCO" — the IATA codes. */
 const CODES = /\b([A-Z]{3})\b(?!.*\b[A-Z]{3}\b.*\b[A-Z]{3}\b)/g;
@@ -83,7 +100,9 @@ export function parseBaOffer(text, testid, { passengers, minPerPassenger = 50 })
   const wholeParty = text.match(PRICE_WHOLE_PARTY);
   if (!perPax && !wholeParty) return null;
 
-  const quoted = Number((perPax ?? wholeParty)[1].replace(/,/g, ''));
+  const matched = perPax ?? wholeParty;
+  const currency = CURRENCY_OF[matched[1]] ?? null;
+  const quoted = Number(matched[2].replace(/,/g, ''));
   if (!Number.isFinite(quoted)) return null;
 
   const perPassenger = perPax ? quoted : quoted / passengers;
@@ -114,6 +133,11 @@ export function parseBaOffer(text, testid, { passengers, minPerPassenger = 50 })
   const operator = text.match(OPERATOR);
 
   return {
+    // Whatever money the page actually quoted. The caller decides what to do
+    // with a currency it did not ask for; this function does not convert, and
+    // must not, because there is no free rate source here and a made-up rate
+    // is worse than a gap.
+    currency,
     perPassengerFare: perPassenger,
     // An estimate only when it was multiplied up: children and young adults
     // often pay less than the adult fare BA quotes. A whole-party figure needs
