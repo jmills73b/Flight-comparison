@@ -47,6 +47,10 @@ const SITES = [
     label: 'British Airways — multi-city tab (the open-jaw entry point)',
     url: 'https://www.britishairways.com/travel/home/public/en_gb/',
     consent: ['Accept all cookies', 'Accept all', 'I accept'],
+    // The first attempt clicked this and nothing changed: the tab still read
+    // aria-controls="" and tabindex="-1", and Flights was still the selected
+    // option. A tab that controls no panel probably is not a tab at all — it
+    // navigates. Hence the URL reporting below.
     open: '[data-testid="flight-search-tabs-li-multi-city"]',
   },
   {
@@ -61,6 +65,16 @@ const SITES = [
     url: 'https://www.virginatlantic.com/en-gb',
     consent: ['Accept All Cookies', 'Accept all', 'I agree'],
     open: '#trip_type',
+  },
+  {
+    id: 'virgin-multicity',
+    label: 'Virgin Atlantic — multi-city form (Shape B, home from Miami)',
+    url: 'https://www.virginatlantic.com/en-gb',
+    consent: ['Accept All Cookies', 'Accept all', 'I agree'],
+    // Confirmed present by the previous dump: the journey dropdown offers
+    // One way, Round trip and Multi-city as plain buttons.
+    open: '#trip_type',
+    then: 'button:has-text("Multi-city")',
   },
 ];
 
@@ -83,18 +97,26 @@ for (const site of sites) {
     // The search widget is usually the last thing to hydrate.
     await page.waitForTimeout(6000);
 
-    if (site.open) {
-      const opened = await page
-        .locator(site.open)
+    for (const [label, selector] of [
+      ['open', site.open],
+      ['then', site.then],
+    ]) {
+      if (!selector) continue;
+      const before = page.url();
+      const clicked = await page
+        .locator(selector)
         .first()
         .click({ timeout: 15000 })
         .then(() => true)
         .catch(() => false);
-      console.log(`   open     ${site.open} → ${opened ? 'clicked' : 'NOT FOUND'}`);
-      if (!opened) {
-        console.log('   (dumping the unopened form anyway — the selector above needs revisiting)');
-      }
-      await page.waitForTimeout(3000);
+      // Whether the click NAVIGATED is the question the last dump could not
+      // answer. A control that changes the URL is an entry point in its own
+      // right, and a far better one than any captured results URL.
+      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+      await page.waitForTimeout(2500);
+      const after = page.url();
+      console.log(`   ${label}     ${selector} → ${clicked ? 'clicked' : 'NOT FOUND'}`);
+      console.log(`            url ${after === before ? 'unchanged' : `CHANGED to ${after}`}`);
     }
 
     // Read the controls out of the live DOM rather than the HTML source: these
