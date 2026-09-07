@@ -119,6 +119,9 @@ function virginSearchUrl(trip, party, route) {
   for (const s of slices) p.append('origin', vsPlace(s.from));
   for (const s of slices) p.append('destination', vsPlace(s.to));
   for (const s of slices) p.append('departing', s.date);
+  // The working URL carried this; a search without it returned Virgin's
+  // "there was a problem processing your request" error page.
+  p.set('CTA', 'AbTest_SP_Flights');
   return `${CARRIERS.virgin.search}?${p}`;
 }
 
@@ -194,14 +197,51 @@ function makeAdapter(key) {
   return async function search(page, { url, trip, passengers, timeoutMs = 30000 }) {
     const started = Date.now();
     try {
+      // Virgin answered a cold search URL with "there was a problem processing
+      // your request" — an error page, not a slow one. Loading the homepage
+      // first gives it the cookies a real visitor would already have.
+      if (carrier.code === 'VS') {
+        await page
+          .goto(carrier.home, { waitUntil: 'domcontentloaded', timeout: timeoutMs })
+          .catch(() => {});
+        await dismissConsent(page, carrier.consent);
+        await page.waitForTimeout(1500);
+      }
+
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
       await dismissConsent(page, carrier.consent);
+
+      // Virgin's error page is a normal 200 with a normal title, so it parses
+      // as "no flights" unless looked for by name.
+      if (carrier.code === 'VS') {
+        const body = await page.innerText('body').catch(() => '');
+        if (/problem processing your request|please go back and try/i.test(body)) {
+          return fail(
+            'request_rejected',
+            'Virgin returned its "problem processing your request" page',
+            page,
+            started
+          );
+        }
+      }
 
       const blocked = await detectBlock(page);
       if (blocked) return fail('blocked', blocked, page, started);
 
-      const ready = await waitForPrice(page, timeoutMs);
+      // BA's multi-city page was still showing "Loading flight results" at 45s
+      // while the round-trip page renders in a couple. Give it longer rather
+      // than concluding there are no fares.
+      const isMulti = /flightList/.test(url);
+      const ready = await waitForPrice(page, isMulti ? timeoutMs * 2.5 : timeoutMs);
       if (!ready.ok) return fail(ready.status, ready.reason, page, started);
+
+      // BA's multi-city page states "Prices are per adult, EXCLUDING taxes,
+      // fees and carrier charges", where the round-trip page says INCLUDING.
+      // Recording both as if they were the same figure would understate an
+      // open jaw by the entire tax component, which on a transatlantic fare is
+      // hundreds of pounds. Detect the wording rather than assume either way.
+      const pageText = await page.innerText('body').catch(() => '');
+      const excludesTaxes = /excluding taxes, fees and carrier charges/i.test(pageText);
 
       let offers = [];
       let ribbon = [];
@@ -234,7 +274,27 @@ function makeAdapter(key) {
         );
         offers = raw
           .map((r) => parseBaOffer(r.text, r.testid, { passengers }))
-          .filter(Boolean);
+          .filter(Boolean)
+          .map((o) => ({
+            ...o,
+            excludesTaxes,
+            priceBasis: excludesTaxes
+              ? 'per_passenger_excluding_taxes_estimate'
+              : o.priceBasis,
+          }));
+
+        // A tax-exclusive figure is not comparable with the tax-inclusive ones
+        // the rest of the tracker records, so it is not passed off as one.
+        if (excludesTaxes && offers.length) {
+          return fail(
+            'price_excludes_taxes',
+            `BA quoted ${offers.length} fares EXCLUDING taxes and charges ` +
+              `(cheapest £${Math.min(...offers.map((o) => o.perPassengerFare))}/pax). ` +
+              `Not comparable with the tax-inclusive prices tracked elsewhere.`,
+            page,
+            started
+          );
+        }
 
         // Free with every BA search: prices for the days either side.
         const ribbonText = await page
