@@ -1,0 +1,293 @@
+[
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://www.virginatlantic.com/next-header-footer/api/component-data/footer?locale=en-GB"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://www.virginatlantic.com/next-header-footer/api/component-data/header?locale=en-GB"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://www.virginatlantic.com/_next/static/css/31daf540726b5308.css"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://www.virginatlantic.com/_next/static/css/45f5c4f8a87ee460.css"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://www.virginatlantic.com/_next/static/css/de50226df1a923bb.css"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=bfcb"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://tms.virginatlantic.com/vaa/ue_bw/serverComponent.php?namespace=Bootstrapper&staticJsPath=/vaa/ue_bw/code/&ClientID=2103&PageID=https%3A%2F%2Fwww.virginatlantic.com%2F%3Fesc"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://smetrics.virginatlantic.com/id?d_visid_ver=5.5.0&d_fieldgroup=A&mcorgid=30516EBF55FC098E7F000101%40AdobeOrg&mid=05461951532560352781831275005519515152&d_coppa=true&ts=17887"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://www.onelink-edge.com/xapis/PretranslateConfig/P1166-388C-6287-A42D.json"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://edge.adobedc.net/ee/v1/interact?configId=b2964955-f645-4ffa-93f9-a084bb14f1b8&requestId=519fc450-b5d2-4d0a-a2a0-4882f3ddba60"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://edge.adobedc.net/ee/va6/v1/interact?configId=b2964955-f645-4ffa-93f9-a084bb14f1b8&requestId=361aff99-588c-4f1b-9981-b5e91dbb2577"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://edge.adobedc.net/ee/va6/v1/interact?configId=b2964955-f645-4ffa-93f9-a084bb14f1b8&requestId=938ed273-3e2c-458a-a00f-8635c87835e9"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://edge.adobedc.net/ee/va6/v1/interact?configId=a07e8d95-7123-46ec-acc4-70e26f30dc8d&requestId=1aa4312e-0971-490d-98e3-35de84458cc9"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://dcs.adobedc.net/collection/0d046688c5d1ac390507a3b5fe22384cfc565e222eeac618bda44ec57f357950?syncValidation=false"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://dcs.adobedc.net/collection/72d92fc7de0b59b0b60891e8901519531358a65c7deb903b7614af3ba4a35460?syncValidation=false"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=30e1"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=ff36"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=ea3e"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=4794"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=fb3a"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=23e1"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://edge.adobedc.net/ee/va6/v1/interact?configId=b2964955-f645-4ffa-93f9-a084bb14f1b8&requestId=47f3f8b7-41d2-4a87-85b5-eed7b8dde07b"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=be4a"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=573d"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=f0cb"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=615c"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=6fc2"
+  },
+  {
+    "status": 302,
+    "method": "POST",
+    "url": "https://www.google.com/measurement/conversion?random=1788798917049&cv=11&tid=G-Q1HL925NN3&fst=1788798917049&fmt=8&en=session_start&gtm=45je6930h2v9121339389za200zd9121339389xec&gcd"
+  },
+  {
+    "status": 204,
+    "method": "POST",
+    "url": "https://analytics.google.com/g/collect?v=2&tid=G-Q1HL925NN3&gtm=45je6930h2v9121339389za200zd9121339389&_p=1788798916759&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1774201712&_eu=AAAA"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://www.google.com/measurement/1p-conversion/?random=635028918&cv=11&tid=G-Q1HL925NN3&fst=1788798917049&fmt=8&en=session_start&gtm=45je6930h2v9121339389za200zd9121339389xec&gcd"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=9714"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://nebula-cdn.kampyle.com/eu/we/271876/onsite/onsiteData1786276545843.json"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://nebula-cdn.kampyle.com/eu/we/271876/forms/22205/formDataV2_1781683420309_en.json"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://nebula-cdn.kampyle.com/eu/we/271876/forms/23990/formDataV2_1781683583923_en.json"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://www.virginatlantic.com/rm8BQ12YG8q1/CE434w/nW_85j/zJ3Of4f9O5JY/TVwBGXI5AQ/HSA7ayJm/akcZ"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://obseu.itstarsbuilding.com/mon"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://obseu.itstarsbuilding.com/mon"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=3348"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=7502"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://www.virginatlantic.com/rm8BQ12YG8q1/CE434w/nW_85j/zJ3Of4f9O5JY/TVwBGXI5AQ/HSA7ayJm/akcZ"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://analytics-fe.digital-cloud-eu-main.medallia.eu/api/web/events"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://analytics-fe.digital-cloud-eu-main.medallia.eu/api/web/events"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://analytics-fe.digital-cloud-eu-main.medallia.eu/api/web/events"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://analytics-fe.digital-cloud-eu-main.medallia.eu/api/web/events"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=da5a"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "url": "https://tms.virginatlantic.com/vaa/ue_bw/serverComponent.php?namespace=Bootstrapper&staticJsPath=/vaa/ue_bw/code/&ClientID=2103&PageID=https%3A%2F%2Fwww.virginatlantic.com%2F%3Fesc"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://edge.adobedc.net/ee/va6/v1/interact?configId=b2964955-f645-4ffa-93f9-a084bb14f1b8&requestId=8520d380-8dc6-4178-a1c4-6dd5d7371200"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://edge.adobedc.net/ee/va6/v1/interact?configId=b2964955-f645-4ffa-93f9-a084bb14f1b8&requestId=b972d73c-0a9c-4b93-b00d-bcf32e6669f0"
+  },
+  {
+    "status": 204,
+    "method": "POST",
+    "url": "https://analytics.google.com/g/collect?v=2&tid=G-Q1HL925NN3&gtm=45je6930h2v9121339389za200zd9121339389&_p=1788798916759&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1774201712&_eu=AAAAAGQC&ci"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://obseu.itstarsbuilding.com/mon"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=836d"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://obseu.itstarsbuilding.com/mon"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://obseu.itstarsbuilding.com/mon"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=497a"
+  },
+  {
+    "status": 202,
+    "method": "POST",
+    "url": "https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser&dd-api-key=pubb42a88ae23c866111614306146276014&dd-evp-origin-version=7.3.0&dd-evp-origin=browser&dd-request-id=7e3b"
+  },
+  {
+    "status": 444,
+    "method": "GET",
+    "url": "https://www.virginatlantic.com/travelplus/search-panel-api/airports/predictive/by-term?term=London",
+    "body": "<HTML><HEAD>\n<TITLE>Access Denied</TITLE>\n</HEAD><BODY>\n<H1>Access Denied</H1>\n \nYou don't have permission to access this server.<P>\nReference 0.8412df17.1788798925.2356100\n</BODY>\n</HTML>"
+  },
+  {
+    "status": 208,
+    "method": "POST",
+    "url": "https://www.onelink-edge.com/xapis/TranslateStats/C95D-E251-5B54-6FC6/8083669640479553235"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "url": "https://obseu.itstarsbuilding.com/mon"
+  }
+]
