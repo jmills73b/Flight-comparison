@@ -149,7 +149,6 @@ const BA_CABIN = { economy: 'M', premium_economy: 'W', business: 'C', first: 'F'
 function baMultiCityUrl(trip, party, legs) {
   const onds = legs.map((l) => `${l.from}-${l.to}_${l.date}`).join(',');
   const p = new URLSearchParams({
-    onds,
     ad: String(party.ba.adults),
     yad: String(party.ba.youngAdults),
     ch: String(party.ba.children),
@@ -158,7 +157,12 @@ function baMultiCityUrl(trip, party, legs) {
     flex: 'LOWEST',
     ond: '1',
   });
-  return `${CARRIERS.ba.multiCity}?${p}`;
+  // `onds` is appended rather than set, with its comma left literal. BA's own
+  // URLs separate the legs with a bare comma; URLSearchParams would percent-
+  // encode it to %2C. The two are equivalent by the standard, but matching
+  // what BA actually emits removes a whole class of "it worked in the browser
+  // but not here" doubt for free.
+  return `${CARRIERS.ba.multiCity}?onds=${onds}&${p}`;
 }
 
 const CARRIERS = {
