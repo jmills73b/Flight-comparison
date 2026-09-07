@@ -16,11 +16,11 @@
  * and prints a case-by-profile matrix. That turns "try stealth and hope" into
  * a measurement: either a profile changes the answer or it does not.
  *
- *   node scripts/probe-airlines.js                         # all cases, all profiles
+ *   node scripts/probe-airlines.js                         # all cases, one profile
  *   node scripts/probe-airlines.js --only ba-return
- *   node scripts/probe-airlines.js --profiles stealth-headed
+ *   node scripts/probe-airlines.js --profiles all          # the full sweep
  */
-import { launchBrowser, describeLaunch, PROFILES } from './lib/browser.js';
+import { launchBrowser, describeLaunch, PROFILES, DEFAULT_PROFILE } from './lib/browser.js';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
@@ -85,10 +85,48 @@ const CASES = [
   },
 ];
 
+/**
+ * Watch what the page asks the network for.
+ *
+ * A single-page app that shows a shell and never a price is failing in a
+ * request, not in the DOM, and the saved HTML cannot show which one. This
+ * records every non-document response — the status, the size, and the first
+ * of any error body — so the next question is answered from the site's own
+ * replies rather than inferred from an empty page.
+ */
+function watchNetwork(page) {
+  const calls = [];
+  page.on('response', async (res) => {
+    const req = res.request();
+    const type = req.resourceType();
+    if (type !== 'xhr' && type !== 'fetch') return;
+    const url = res.url();
+    // Analytics and tag managers are noise — they fail all the time and it
+    // never matters.
+    if (/google-analytics|googletagmanager|doubleclick|adobedtm|demdex|quantummetric|newrelic|nr-data|sentry|cookielaw|onetrust/i.test(url)) {
+      return;
+    }
+    const entry = { status: res.status(), method: req.method(), url: url.slice(0, 180) };
+    if (res.status() >= 400) {
+      entry.body = await res.text().then((t) => t.slice(0, 400)).catch(() => '(unreadable)');
+    }
+    calls.push(entry);
+  });
+  return calls;
+}
+
 const cases = only ? CASES.filter((c) => c.id === only) : CASES;
 
+// The sweep proved the browser profile makes no difference to any of these
+// four cases, so one profile is the default and the full sweep is opt-in —
+// twelve page loads to re-learn a settled answer is not worth twelve minutes.
 const profileArg = args.includes('--profiles') ? args[args.indexOf('--profiles') + 1] : null;
-const profiles = profileArg ? profileArg.split(',').map((p) => p.trim()) : PROFILES;
+const profiles =
+  profileArg === 'all'
+    ? PROFILES
+    : profileArg
+      ? profileArg.split(',').map((p) => p.trim())
+      : [DEFAULT_PROFILE];
 for (const p of profiles) {
   if (!PROFILES.includes(p)) {
     console.error(`Unknown profile "${p}". Known: ${PROFILES.join(', ')}`);
@@ -120,6 +158,7 @@ for (const profileName of profiles) {
     console.log(`   ${url}`);
 
     const page = await context.newPage();
+    const calls = watchNetwork(page);
     const r = await c.run(page, {
       url,
       trip: cfg.trip,
@@ -163,6 +202,21 @@ for (const profileName of profiles) {
       if (r.status !== 'ok') console.log(`   says     ${text.slice(0, 220)}`);
       console.log(`   saved    data/probe/${c.id}.${launched.profile}.html.gz`);
     }
+    // Only interesting when the case failed — a working page's traffic is
+    // just noise, and a failing page's traffic is the whole story.
+    const failed = calls.filter((x) => x.status >= 400);
+    console.log(`   network  ${calls.length} data requests, ${failed.length} failed`);
+    for (const f of failed.slice(0, 6)) {
+      console.log(`     ${f.status} ${f.method} ${f.url}`);
+      if (f.body) console.log(`         ${f.body.replace(/\s+/g, ' ').slice(0, 160)}`);
+    }
+    if (r.status !== 'ok' && calls.length) {
+      writeFileSync(
+        join(outDir, `${c.id}.${launched.profile}.network.json`),
+        JSON.stringify(calls, null, 2)
+      );
+      console.log(`   saved    data/probe/${c.id}.${launched.profile}.network.json`);
+    }
     console.log();
 
     results.push({
@@ -171,6 +225,8 @@ for (const profileName of profiles) {
       status: r.status,
       offers: r.offers.length,
       prices,
+      calls: calls.length,
+      failedCalls: calls.filter((x) => x.status >= 400).length,
     });
     await page.close();
     await new Promise((res) => setTimeout(res, 4000 + Math.random() * 3000));
@@ -200,7 +256,8 @@ for (const c of cases) {
 console.log('\nDetail');
 for (const r of results) {
   console.log(
-    `  ${r.profile.padEnd(15)} ${r.id.padEnd(width)} ${r.status.padEnd(28)} ${r.offers} offers`
+    `  ${r.profile.padEnd(15)} ${r.id.padEnd(width)} ${r.status.padEnd(22)} ` +
+      `${r.offers} offers · ${r.calls} calls, ${r.failedCalls} failed`
   );
 }
 

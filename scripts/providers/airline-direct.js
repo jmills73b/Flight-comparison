@@ -126,6 +126,46 @@ function virginSearchUrl(trip, party, route) {
 }
 
 /**
+ * What a page that never produced a price is actually saying.
+ *
+ * "No price appeared" is the observation, not the diagnosis, and the three
+ * possibilities behind it need entirely different fixes: the site refused the
+ * request, the site is still loading, or there genuinely are no flights. Read
+ * it out of the DOM rather than guessing.
+ */
+async function classifyStalledPage(page, carrier) {
+  const body = await page.innerText('body').catch(() => '');
+
+  if (/problem processing your request|please go back and try/i.test(body)) {
+    return {
+      status: 'request_rejected',
+      reason: `${carrier.code} returned its "problem processing your request" page`,
+    };
+  }
+  if (/no flights|no results|nothing available|sold out/i.test(body)) {
+    return { status: 'no_flights', reason: `${carrier.code} reported no flights on this date` };
+  }
+
+  // Still showing placeholder bars means the results request never came back:
+  // the shell rendered and then waited, which is a different failure from a
+  // page that finished and had nothing to show.
+  const skeletons = await page
+    .locator('ba-loading-skeleton, [class*="loading-skeleton"], [class*="skeleton"]')
+    .count()
+    .catch(() => 0);
+  if (skeletons > 0) {
+    return {
+      status: 'results_never_loaded',
+      reason:
+        `${carrier.code} still showing ${skeletons} loading placeholders — ` +
+        'the results request never returned',
+    };
+  }
+
+  return null;
+}
+
+/**
  * Real British Airways MULTI-CITY URL, taken verbatim from a performed search:
  *
  *   /travel/book/public/en_gb/flightList
@@ -233,7 +273,18 @@ function makeAdapter(key) {
       // than concluding there are no fares.
       const isMulti = /flightList/.test(url);
       const ready = await waitForPrice(page, isMulti ? timeoutMs * 2.5 : timeoutMs);
-      if (!ready.ok) return fail(ready.status, ready.reason, page, started);
+      if (!ready.ok) {
+        // Re-read the page before naming the failure. Both sites are
+        // single-page apps: at domcontentloaded the body is a shell, so the
+        // rejection check above ran too early to see anything. Whatever the
+        // page has to say, it has said by now — and a saved Virgin page
+        // carrying "there was a problem processing your request" while the run
+        // reported "no prices rendered" is a misdiagnosis that sent me looking
+        // at browser fingerprints for a day.
+        const late = await classifyStalledPage(page, carrier);
+        if (late) return fail(late.status, late.reason, page, started);
+        return fail(ready.status, ready.reason, page, started);
+      }
 
       // BA's multi-city page states "Prices are per adult, EXCLUDING taxes,
       // fees and carrier charges", where the round-trip page says INCLUDING.

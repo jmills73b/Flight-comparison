@@ -22,7 +22,7 @@ on:
         default: false
         type: boolean
       probe_profiles:
-        description: 'Browser profiles the airline probe sweeps, comma separated. Blank runs all three.'
+        description: 'Browser profiles the airline probe uses. Blank runs one; "all" sweeps all three.'
         required: false
         default: ''
         type: string

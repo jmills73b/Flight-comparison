@@ -235,6 +235,51 @@ Nothing here defeats a paywall or a login. It makes an automated browser look
 like the ordinary one the same person would open by hand to read the same
 public prices.
 
+### What the sweep found: nothing, and that is the useful part
+
+Run 17 swept all three profiles across all four cases. The results were
+**identical in every cell**:
+
+| case | plain | stealth | stealth-headed |
+|---|---|---|---|
+| ba-return | 2 offers | 2 offers | 2 offers |
+| ba-openjaw | 0 | 0 | 0 |
+| vs-return | 0 | 0 | 0 |
+| vs-openjaw | 0 | 0 | 0 |
+
+So the fingerprint hypothesis is **wrong**. The three failing cases do not fail
+because the browser looks automated — they fail for the same reason in every
+browser. `stealth` remains the default because it costs nothing, but no further
+effort should go into disguising the browser: that lever has been measured and
+it does not move.
+
+What the saved pages say instead:
+
+- **Virgin** renders `We're sorry, there was a problem processing your request.
+  Please go back and try the entry again.` That is a site rejecting a
+  **deep link**, not a bot. The URL was captured after a search performed in a
+  browser, so it carries state Virgin expects to have created itself.
+- **BA multi-city** sits on loading placeholders indefinitely — the shell
+  renders and the results request never returns.
+
+Both point the same way: these two pages are not valid cold entry points, and
+the fix is to **drive the search form** the way a person does rather than to
+deep-link its result. BA's ordinary return search, which *is* a real entry
+point, has worked from the first attempt in every profile.
+
+The probe now also records every XHR the page makes, with status codes and
+error bodies, to `data/probe/<case>.<profile>.network.json` — because a
+single-page app that shows a shell and never a price is failing in a request,
+and the saved HTML cannot show which one.
+
+One bug came out of this that mattered more than the sweep: the Virgin
+rejection was being reported as `no_prices_rendered`. The check for it ran at
+`domcontentloaded`, when the body is still an empty shell, so it never saw the
+message that appeared seconds later. The run said "no prices" while the saved
+page said "we rejected you" — and I spent a day on fingerprints as a result.
+Failures are now re-classified **after** the wait, by `classifyStalledPage`,
+into `request_rejected`, `no_flights`, or `results_never_loaded`.
+
 ---
 
 ## 5. Repository layout
