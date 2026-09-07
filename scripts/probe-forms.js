@@ -112,8 +112,19 @@ for (const site of sites) {
       const [action, arg] = Object.entries(step)[0];
       const selector = Array.isArray(arg) ? arg[0] : arg;
 
+      // pressSequentially, not fill. fill() sets the value and fires one input
+      // event; an airport combobox listens for keystrokes, so filling it looks
+      // like nothing was typed — which is exactly why the first attempt at
+      // this captured no suggestions at all. Click first so the field is
+      // focused the way a person's would be.
       const done = await (action === 'type'
-        ? page.locator(selector).first().fill(arg[1], { timeout: 15000 })
+        ? page
+            .locator(selector)
+            .first()
+            .click({ timeout: 15000 })
+            .then(() =>
+              page.locator(selector).first().pressSequentially(arg[1], { delay: 120 })
+            )
         : page.locator(selector).first().click({ timeout: 15000 })
       )
         .then(() => true)
@@ -175,7 +186,9 @@ for (const site of sites) {
         inputs: pick('input, select, textarea'),
         buttons: pick('button, [role="button"], a[href*="search"]'),
         // Whatever a just-opened dropdown put on screen.
-        options: [...document.querySelectorAll('[role="option"], [role="menuitem"], li[data-testid]')]
+        options: [...document.querySelectorAll(
+          '[role="option"], [role="menuitem"], [role="listbox"] *, li[data-testid], ul li'
+        )]
           .filter((e) => e.offsetWidth || e.offsetHeight)
           .map((e) => (e.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 60))
           .filter(Boolean)
