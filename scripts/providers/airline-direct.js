@@ -91,6 +91,13 @@ function baSearchUrl(trip, party, { from, to, out, back }) {
  *
  * Multi-city uses this same path: the slice list simply describes different
  * legs, so an open jaw needs no separate URL builder.
+ *
+ * SELECTING A FARE BRAND CANNOT BE DONE BY URL. A real fare-selected URL reads
+ * .../slice/1?...&id=16ddbe26-35c4-...&fareId=c95f0e16-...|dcb01a6a-...-FL-2 —
+ * both are session GUIDs minted server-side for that one search, and they
+ * expire. So the Economy Classic price (hold bag, not refundable) can only be
+ * had by driving the page: run the search, then click the brand. Noted here so
+ * the URL route is not attempted again.
  */
 function virginPassengers(party) {
   const v = party.virgin;

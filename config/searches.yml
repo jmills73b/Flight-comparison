@@ -35,6 +35,28 @@ trip:
 
   cabin: economy          # economy | premium_economy | business | first
   checked_bags: 4         # one per passenger
+  # THE FARE BRAND TO BOOK, per airline. Brands differ by name but the shape is
+  # the same everywhere: a cheap hand-baggage-only brand, a middle brand with a
+  # hold bag, and dearer flexible ones.
+  #
+  # Wanted is the MIDDLE brand — a hold bag included, no refundability. The
+  # flexible brands are explicitly not wanted: this is a family holiday booked
+  # a year out, not a trip that needs changing.
+  #
+  # These are not yet read from any page. A results list quotes only the
+  # cheapest brand, and selecting a specific one produces a URL carrying
+  # session GUIDs (Virgin: id=... and fareId=...) that cannot be constructed in
+  # advance and expire quickly. Reading a real brand price therefore needs the
+  # page driven, not a URL built — recorded here so the URL route is not
+  # attempted again.
+  fare_brands:
+    BA:
+      want: Economy Standard
+      avoid: [Economy Basic, Economy Semi-Flex, Economy Full Flex]
+    VS:
+      want: Economy Classic
+      avoid: [Economy Light, Economy Delight, Economy Flex]
+
   # Direct flights only. Asked for explicitly: with a 9- and 12-year-old, a
   # 13h30 one-stop is not a cheaper version of the same trip, it is a
   # different trip. Enforced twice — the search asks for direct where the
