@@ -21,6 +21,11 @@ on:
         required: false
         default: false
         type: boolean
+      probe_forms:
+        description: 'Diagnostic: dump the BA and Virgin search FORM structure, so form-driving selectors are written from evidence. Writes no price history.'
+        required: false
+        default: false
+        type: boolean
       probe_profiles:
         description: 'Browser profiles the airline probe uses. Blank runs one; "all" sweeps all three.'
         required: false
@@ -76,7 +81,9 @@ jobs:
         id: collect
         continue-on-error: true
         run: |
-          if [ "${{ inputs.probe_airlines }}" = "true" ]; then
+          if [ "${{ inputs.probe_forms }}" = "true" ]; then
+            xvfb-run -a node scripts/probe-forms.js
+          elif [ "${{ inputs.probe_airlines }}" = "true" ]; then
             if [ -n "${{ inputs.probe_profiles }}" ]; then
               xvfb-run -a node scripts/probe-airlines.js --profiles "${{ inputs.probe_profiles }}"
             else

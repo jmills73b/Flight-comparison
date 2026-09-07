@@ -107,10 +107,19 @@ function watchNetwork(page) {
       return;
     }
     const entry = { status: res.status(), method: req.method(), url: url.slice(0, 180) };
-    if (res.status() >= 400) {
-      entry.body = await res.text().then((t) => t.slice(0, 400)).catch(() => '(unreadable)');
-    }
     calls.push(entry);
+
+    // Reading the body is best-effort and STRICTLY time-boxed. response.text()
+    // waits for the body to finish downloading, and a body that never finishes
+    // leaves a promise that never settles — which is what hung run 19 for
+    // eighteen minutes until it was cancelled. Nothing in a diagnostic is
+    // worth blocking on.
+    if (res.status() >= 400) {
+      entry.body = await Promise.race([
+        res.text().then((t) => t.slice(0, 400)),
+        new Promise((r) => setTimeout(() => r('(body never arrived)'), 5000)),
+      ]).catch(() => '(unreadable)');
+    }
   });
   return calls;
 }
@@ -159,12 +168,21 @@ for (const profileName of profiles) {
 
     const page = await context.newPage();
     const calls = watchNetwork(page);
-    const r = await c.run(page, {
-      url,
-      trip: cfg.trip,
-      passengers: cfg.passengers,
-      timeoutMs: 45000,
-    });
+
+    // A hard ceiling per case. The adapter has its own timeouts, but run 19
+    // proved they only cover what the adapter knows it is waiting for — a hang
+    // anywhere else runs until the job is killed, and a diagnostic that can
+    // eat the whole budget is worse than no diagnostic. Four minutes is well
+    // clear of BA multi-city's 112 second wait.
+    const r = await Promise.race([
+      c.run(page, { url, trip: cfg.trip, passengers: cfg.passengers, timeoutMs: 45000 }),
+      new Promise((resolve) =>
+        setTimeout(
+          () => resolve({ status: 'probe_timeout', reason: 'case exceeded 4 minutes', offers: [] }),
+          240000
+        )
+      ),
+    ]);
 
     console.log(`   status   ${r.status}${r.reason ? ` — ${r.reason}` : ''}`);
     console.log(`   offers   ${r.offers.length}`);
@@ -228,7 +246,10 @@ for (const profileName of profiles) {
       calls: calls.length,
       failedCalls: calls.filter((x) => x.status >= 400).length,
     });
-    await page.close();
+    await Promise.race([
+      page.close(),
+      new Promise((r) => setTimeout(r, 15000)),
+    ]).catch(() => {});
     await new Promise((res) => setTimeout(res, 4000 + Math.random() * 3000));
   }
 
