@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { launchBrowser, describeLaunch } from './lib/browser.js';
 import { loadConfig, legsFor } from './lib/config.js';
 import { plannedSearches } from './lib/urls.js';
 import { trueTotal, composeSplitTicket, round2 } from './lib/pricing.js';
@@ -68,12 +68,10 @@ if (flag('--probe')) {
   console.log(`Probe: LON → MCO on ${soon} (60 days out, certainly on sale)`);
   console.log(url + '\n');
 
-  const browser = await chromium.launch({
-    headless: true,
-    executablePath: process.env.CHROMIUM_PATH || undefined,
-    args: ['--disable-blink-features=AutomationControlled'],
-  });
-  const page = await browser.newPage({ locale: cfg.trip.locale });
+  const launched = await launchBrowser({ locale: cfg.trip.locale });
+  const { browser, context: probeContext } = launched;
+  console.log(describeLaunch(launched) + '\n');
+  const page = await probeContext.newPage();
   const out = await googleFlights(page, {
     url,
     trip: cfg.trip,
@@ -97,7 +95,7 @@ if (flag('--probe')) {
   // compare: roughly 4x means the figures above are party totals.
   if (out.status === 'ok' && cfg.passengers > 1) {
     const soloTrip = { ...cfg.trip, adults: 1, children_ages: [] };
-    const soloPage = await browser.newPage({ locale: cfg.trip.locale });
+    const soloPage = await probeContext.newPage();
     const solo = await googleFlights(soloPage, {
       url: oneWayUrl(soloTrip, { from: 'LON', to: 'MCO', date: soon }),
       trip: soloTrip,
@@ -168,22 +166,12 @@ const stamp = runStamp();
 const collectedAt = new Date().toISOString();
 console.log(`Run ${stamp} — ${searches.length} searches`);
 
-// CI installs the browser build that matches the pinned Playwright version, so
-// no path is needed there. CHROMIUM_PATH lets a machine with a pre-installed
-// Chromium of a different build run the collector without re-downloading.
-const browser = await chromium.launch({
-  headless: true,
-  executablePath: process.env.CHROMIUM_PATH || undefined,
-  args: ['--disable-blink-features=AutomationControlled'],
-});
-const context = await browser.newContext({
-  locale: cfg.trip.locale,
-  timezoneId: 'Europe/London',
-  viewport: { width: 1440, height: 1000 },
-  userAgent:
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
-    '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-});
+// How the browser is launched lives in lib/browser.js, and which profile it
+// uses is BROWSER_PROFILE — the airlines refuse to serve prices to a stock
+// headless Chromium, so the default is the stealth profile.
+const launched = await launchBrowser({ locale: cfg.trip.locale });
+const { browser, context } = launched;
+console.log(describeLaunch(launched));
 
 const results = [];
 const historyRows = [];

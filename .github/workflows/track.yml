@@ -21,6 +21,17 @@ on:
         required: false
         default: false
         type: boolean
+      probe_profiles:
+        description: 'Browser profiles the airline probe sweeps, comma separated. Blank runs all three.'
+        required: false
+        default: ''
+        type: string
+      browser_profile:
+        description: 'Browser profile for a normal collection run.'
+        required: false
+        default: 'stealth-headed'
+        type: choice
+        options: ['stealth-headed', 'stealth', 'plain']
 
 # Never let two runs write to the repository at once.
 concurrency:
@@ -33,7 +44,15 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # A three-profile probe sweep is twelve page loads with waits between them,
+    # which does not fit the 30 minutes a plain collection needs.
+    timeout-minutes: 45
+
+    env:
+      # Both airlines refuse to serve prices to a stock headless Chromium, so
+      # the default is a real window on a virtual display with the stealth
+      # evasions applied. See scripts/lib/browser.js.
+      BROWSER_PROFILE: ${{ inputs.browser_profile || 'stealth-headed' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -45,21 +64,30 @@ jobs:
 
       - run: npm ci
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      # Chrome as well as Chromium: the stealth-headed profile prefers real
+      # Google Chrome, whose codecs and branding several bot detectors check
+      # for. It falls back to Chromium if this step ever stops providing it.
+      - name: Install browsers
+        run: npx playwright install --with-deps chromium chrome
 
+      # xvfb-run gives the headed profiles a display. It is harmless for the
+      # headless ones, which ignore DISPLAY entirely.
       - name: Collect fares
         id: collect
         continue-on-error: true
         run: |
           if [ "${{ inputs.probe_airlines }}" = "true" ]; then
-            node scripts/probe-airlines.js
+            if [ -n "${{ inputs.probe_profiles }}" ]; then
+              xvfb-run -a node scripts/probe-airlines.js --profiles "${{ inputs.probe_profiles }}"
+            else
+              xvfb-run -a node scripts/probe-airlines.js
+            fi
           elif [ "${{ inputs.probe }}" = "true" ]; then
-            node scripts/collect.js --probe
+            xvfb-run -a node scripts/collect.js --probe
           elif [ -n "${{ inputs.only }}" ]; then
-            node scripts/collect.js --only "${{ inputs.only }}"
+            xvfb-run -a node scripts/collect.js --only "${{ inputs.only }}"
           else
-            node scripts/collect.js
+            xvfb-run -a node scripts/collect.js
           fi
 
       - name: Rebuild dashboard data

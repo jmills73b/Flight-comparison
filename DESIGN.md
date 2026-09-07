@@ -191,10 +191,57 @@ Two constraints worth recording:
 
 ---
 
+## 4a. How the browser is launched
+
+Three of the four airline adapters loaded the correct page and then never saw a
+price, even given 112 seconds. The page was right, the wait was long enough,
+and the same URL in a real browser returns results in seconds. That is not a
+parser bug — it is the site declining to serve inventory to this browser. Both
+airlines front their search with bot detection, and stock headless Chromium
+launched by Playwright is one of the most recognisable clients on the web: no
+window, no plugins, no WebGL vendor, a user agent that says HeadlessChrome.
+
+`scripts/lib/browser.js` is the single place a browser is launched, and it
+offers three named profiles so a fix can be **measured** rather than assumed:
+
+| Profile | What it is |
+|---|---|
+| `plain` | Stock headless Chromium — the control, i.e. what has been failing |
+| `stealth` | Headless plus puppeteer-extra's stealth evasions |
+| `stealth-headed` | The same evasions in a real window on a virtual display (xvfb), preferring Google Chrome over Chromium |
+
+Two of the plugin's evasions are switched off deliberately. `user-agent-override`
+is written against a Puppeteer API Playwright lacks and throws. `navigator.languages`
+hardcodes `en-US,en`, which would leave the browser claiming American languages
+while sending an `en-GB` Accept-Language header — a browser that never touched
+the property is less suspicious than one that contradicts itself. Both values
+come from the Playwright context locale instead, so they cannot disagree.
+
+`scripts/probe-airlines.js` sweeps the profiles across all four diagnostic
+cases and prints a case-by-profile matrix, with each page saved as
+`data/probe/<case>.<profile>.html.gz`. Reading down a column says whether a
+profile helped; reading across a row says whether a case fails everywhere. The
+matrix counts offers **and** pound figures found anywhere on the page, because
+"0 offers on a page full of prices" is a parser bug and "0 offers on a page
+with no prices" is a blocking problem, and the two must not be confused.
+
+A headed browser does much more on startup than a headless one, and on a
+restricted network some of it hangs rather than fails. The launcher therefore
+gives a headed start 90 seconds and degrades to headless if it misses — worse,
+but a result rather than a burnt job budget. It always reports which profile
+actually ran, so a success is never credited to a profile that did not.
+
+Nothing here defeats a paywall or a login. It makes an automated browser look
+like the ordinary one the same person would open by hand to read the same
+public prices.
+
+---
+
 ## 5. Repository layout
 
 Plain ES-module JavaScript, no build step: CI runs `node scripts/collect.js`
-directly. Two dependencies only — `playwright` and `yaml`.
+directly. Four dependencies — `playwright` and `yaml`, plus `playwright-extra`
+and `puppeteer-extra-plugin-stealth` for the browser profiles in §4a.
 
 ```
 .github/workflows/
