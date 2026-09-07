@@ -203,10 +203,16 @@ const tripped = {};
 for (const s of searches) {
   const page = await context.newPage();
   const directions = s.kind === 'round_trip' ? 2 : 1;
-  const routeArgs = { from: s.from, to: s.to, out: s.out ?? s.date, back: s.back ?? null };
+  // An open jaw is expressed as explicit legs; everything else as out-and-back.
+  const routeArgs = s.slices
+    ? { slices: s.slices }
+    : { from: s.from, to: s.to, out: s.out ?? s.date, back: s.back ?? null };
 
   const providers = [
-    { name: PROVIDER_BA, run: searchBA, url: baUrl(cfg.trip, cfg.party, routeArgs) },
+    // BA has a multi-city form but its URL is not known yet, so open jaws skip
+    // it rather than being sent a guessed URL.
+    { name: PROVIDER_BA, run: searchBA,
+      url: s.kind === 'open_jaw' ? null : baUrl(cfg.trip, cfg.party, routeArgs) },
     { name: PROVIDER_VS, run: searchVirgin, url: virginUrl(cfg.trip, cfg.party, routeArgs) },
     { name: PROVIDER, run: googleFlights, url: s.url },
     { name: SKYSCANNER, run: skyscanner, url: s.skyscannerUrl },

@@ -194,6 +194,33 @@ export function plannedSearches({ trip, itineraries, legs }) {
     });
   }
 
+  // Open jaws, priced as a SINGLE ticket. Until now these have only ever had
+  // a split-ticket price, composed from two one-way legs, because Google's q=
+  // form cannot express a multi-city trip. Skyscanner's /transport/d/ path and
+  // Virgin's slice model both can, so the eight open jaws finally get a real
+  // one-ticket comparison. Google is simply absent from these.
+  for (const it of itineraries) {
+    if (it.isRoundTrip) continue;
+    const slices = [
+      { from: it.origin, to: it.into, date: it.out },
+      { from: it.home_from, to: it.origin, date: it.back },
+    ];
+    searches.push({
+      kind: 'open_jaw',
+      id: `${it.id}-single`,
+      signature: `${it.signature}|single`,
+      label: `${it.origin} → ${it.into} · ${it.home_from} → ${it.origin}`,
+      from: it.origin,
+      to: it.into,
+      out: it.out,
+      back: it.back,
+      slices,
+      // No Google URL: q= cannot express an open jaw.
+      url: null,
+      skyscannerUrl: skyscannerMultiCityUrl(trip, slices),
+    });
+  }
+
   for (const leg of legs) {
     searches.push({
       kind: 'one_way',
