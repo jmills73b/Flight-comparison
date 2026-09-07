@@ -113,6 +113,45 @@ function virginSearchUrl(trip, party, route) {
   return `${CARRIERS.virgin.search}?${p}`;
 }
 
+/**
+ * Real British Airways MULTI-CITY URL, taken verbatim from a performed search:
+ *
+ *   /travel/book/public/en_gb/flightList
+ *     ?onds=LON-MCO_2027-08-11,MIA-LON_2027-08-26
+ *     &ad=2&yad=1&ch=1&inf=0&cabin=M&flex=LOWEST&ond=1
+ *
+ * A different path from the single-trip search, and a tidier shape: `onds` is
+ * a comma-separated list of ORIGIN-DESTINATION_DATE triples, one per leg, so
+ * it expresses an open jaw directly. Passenger counts are abbreviated —
+ * ad/yad/ch/inf — and `cabin=M` is economy.
+ *
+ * `flex=LOWEST` asks for the cheapest fares, which is consistent with the
+ * "price from" figure the results page shows; a stricter fare brand would need
+ * a different value, and finding that is what a true Economy Standard price
+ * still depends on.
+ *
+ * Round trips keep using the airselect URL, which is separately verified and
+ * returning real fares. This form could very likely serve both — a return is
+ * just LON-MCO_out,MCO-LON_back — but switching a working search on an
+ * untested hunch is how the earlier guessed URLs wasted runs.
+ */
+const BA_CABIN = { economy: 'M', premium_economy: 'W', business: 'C', first: 'F' };
+
+function baMultiCityUrl(trip, party, legs) {
+  const onds = legs.map((l) => `${l.from}-${l.to}_${l.date}`).join(',');
+  const p = new URLSearchParams({
+    onds,
+    ad: String(party.ba.adults),
+    yad: String(party.ba.youngAdults),
+    ch: String(party.ba.children),
+    inf: String(party.ba.infants),
+    cabin: BA_CABIN[trip.cabin] ?? 'M',
+    flex: 'LOWEST',
+    ond: '1',
+  });
+  return `${CARRIERS.ba.multiCity}?${p}`;
+}
+
 const CARRIERS = {
   ba: {
     code: 'BA',
@@ -121,6 +160,8 @@ const CARRIERS = {
     home: 'https://www.britishairways.com/travel/home/public/en_gb/',
     // Confirmed from a real search.
     search: 'https://www.britishairways.com/nx/b/airselect/en/gbr/book/search/',
+    // Confirmed from a real multi-city search — a different path entirely.
+    multiCity: 'https://www.britishairways.com/travel/book/public/en_gb/flightList',
     consent: ['Accept all cookies', 'Accept All Cookies', 'Allow all'],
   },
   virgin: {
@@ -259,6 +300,8 @@ export const searchBA = makeAdapter('ba');
 export const searchVirgin = makeAdapter('virgin');
 
 export function baUrl(trip, party, route) {
+  // An open jaw arrives as explicit legs and needs the multi-city form.
+  if (route.slices) return baMultiCityUrl(trip, party, route.slices);
   return baSearchUrl(trip, party, route);
 }
 export function virginUrl(trip, party, route) {
