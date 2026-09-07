@@ -24,6 +24,9 @@ fallback:
   confidence: low
 
 carriers:
+  # THE BRAND TO BOOK: Economy Standard. A results list quotes "price from",
+  # which is Economy Basic and carries no hold bag, so the tracked figure is a
+  # teaser plus the estimated bag below rather than a real Standard quote.
   BA:
     name: British Airways
     bags_included_per_passenger: 1
@@ -37,6 +40,8 @@ carriers:
       One checked bag is normally included in transatlantic economy, but not on
       the Basic brand, which is sold on exactly these routes.
 
+  # THE BRAND TO BOOK: Economy Classic. Same trap as BA — a results list quotes
+  # Economy Light, which is hand baggage only.
   VS:
     name: Virgin Atlantic
     bags_included_per_passenger: 1

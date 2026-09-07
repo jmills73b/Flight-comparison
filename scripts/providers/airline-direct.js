@@ -85,18 +85,20 @@ function baSearchUrl(trip, party, { from, to, out, back }) {
  * from Miami — which Google's q= form cannot do, so `slices` is accepted
  * directly as well as the simple from/to/out/back shape.
  *
- * Virgin does not appear to take the LON metro code, so a London search is
- * narrowed to Heathrow. That is a real narrowing and it is recorded on the
- * offer: Virgin's UK-Florida flying is Heathrow-based, but any Gatwick service
- * would be missed.
+ * Virgin DOES take the LON metro code — a real search URL reads origin=LON.
+ * An earlier version narrowed London to Heathrow on the assumption it did not,
+ * which would have silently missed any Gatwick service. Assumption removed.
+ *
+ * Multi-city uses this same path: the slice list simply describes different
+ * legs, so an open jaw needs no separate URL builder.
  */
 function virginPassengers(party) {
   const v = party.virgin;
   return `a${v.adults}t${v.teens}c${v.children}i${v.infants}`;
 }
 
-const VIRGIN_PLACE = { LON: 'LHR' };
-const vsPlace = (iata) => VIRGIN_PLACE[iata] ?? iata;
+// No place mapping needed: Virgin takes plain IATA codes, LON included.
+const vsPlace = (iata) => iata;
 
 function virginSearchUrl(trip, party, route) {
   // Either an explicit list of legs, or the usual out-and-back pair.
@@ -283,7 +285,13 @@ export function parseRow(row, passengers, carrier) {
     // Fixed, not inferred: this adapter only ever searched this airline.
     carrier: carrier.code,
     carrierName: carrier.name,
-    fareBrand: null,
+    // The brand to actually book on Virgin is Economy Classic, which includes
+    // hold luggage. A results list quotes the cheapest brand, Economy Light,
+    // which does not — the same teaser-price trap as BA's Economy Basic. Named
+    // so carrier-fees.yml adds the bag rather than assuming one is included.
+    // Unverified: no Virgin results page has been captured yet.
+    fareBrand: carrier.code === 'VS' ? 'Economy Light (lowest available)' : null,
+    isFromPrice: carrier.code === 'VS',
     stops: parseStops(text),
     depLocal: times[0] ?? null,
     arrLocal: times[1] ?? null,
