@@ -28,6 +28,13 @@ const cfg = loadConfig();
 const args = process.argv.slice(2);
 const only = args.includes('--only') ? args[args.indexOf('--only') + 1] : null;
 
+/**
+ * `open` is a control to click before dumping. The interesting fields for an
+ * open jaw are behind a tab or a dropdown and simply do not exist in the DOM
+ * until it is opened — the first pass found BA's multi-city TAB but none of
+ * its leg inputs, which is exactly the gap that matters here. Selectors below
+ * are taken from that first dump, not from memory.
+ */
 const SITES = [
   {
     id: 'ba',
@@ -36,10 +43,24 @@ const SITES = [
     consent: ['Accept all cookies', 'Accept all', 'I accept'],
   },
   {
+    id: 'ba-multicity',
+    label: 'British Airways — multi-city tab (the open-jaw entry point)',
+    url: 'https://www.britishairways.com/travel/home/public/en_gb/',
+    consent: ['Accept all cookies', 'Accept all', 'I accept'],
+    open: '[data-testid="flight-search-tabs-li-multi-city"]',
+  },
+  {
     id: 'virgin',
     label: 'Virgin Atlantic — homepage search',
     url: 'https://www.virginatlantic.com/en-gb',
     consent: ['Accept All Cookies', 'Accept all', 'I agree'],
+  },
+  {
+    id: 'virgin-trip-type',
+    label: 'Virgin Atlantic — journey type options (is multi-city offered?)',
+    url: 'https://www.virginatlantic.com/en-gb',
+    consent: ['Accept All Cookies', 'Accept all', 'I agree'],
+    open: '#trip_type',
   },
 ];
 
@@ -62,6 +83,20 @@ for (const site of sites) {
     // The search widget is usually the last thing to hydrate.
     await page.waitForTimeout(6000);
 
+    if (site.open) {
+      const opened = await page
+        .locator(site.open)
+        .first()
+        .click({ timeout: 15000 })
+        .then(() => true)
+        .catch(() => false);
+      console.log(`   open     ${site.open} → ${opened ? 'clicked' : 'NOT FOUND'}`);
+      if (!opened) {
+        console.log('   (dumping the unopened form anyway — the selector above needs revisiting)');
+      }
+      await page.waitForTimeout(3000);
+    }
+
     // Read the controls out of the live DOM rather than the HTML source: these
     // are web-component sites, so the interesting attributes only exist after
     // hydration and are invisible in the served markup.
@@ -82,6 +117,12 @@ for (const site of sites) {
       return {
         inputs: pick('input, select, textarea'),
         buttons: pick('button, [role="button"], a[href*="search"]'),
+        // Whatever a just-opened dropdown put on screen.
+        options: [...document.querySelectorAll('[role="option"], [role="menuitem"], li[data-testid]')]
+          .filter((e) => e.offsetWidth || e.offsetHeight)
+          .map((e) => (e.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 60))
+          .filter(Boolean)
+          .slice(0, 40),
         // Custom elements are where these sites keep the real widgets.
         customElements: [
           ...new Set(
@@ -116,6 +157,10 @@ for (const site of sites) {
             .filter(Boolean)
             .join(' ')
       );
+    }
+    if (found.options?.length) {
+      console.log(`   ${found.options.length} options on screen`);
+      console.log(`     ${found.options.join(' | ')}`);
     }
     console.log(`   ${buttons.length} candidate buttons`);
     for (const b of buttons.slice(0, 15)) {
