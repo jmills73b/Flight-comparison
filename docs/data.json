@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-07T22:14:17.811Z",
+  "generated_at": "2026-09-08T12:21:27.202Z",
   "trip": {
     "name": "Florida 2027",
     "adults": 2,
@@ -7,8 +7,8 @@
     "cabin": "economy",
     "currency": "GBP"
   },
-  "lastCollected": "2026-09-07T22:01:36.192Z",
-  "runCount": 11,
+  "lastCollected": "2026-09-08T12:08:37.127Z",
+  "runCount": 12,
   "carHire": {
     "apply": false,
     "estimate_gbp": 150,
@@ -66,6 +66,11 @@
         "at": "2026-09-07T22:01:36.192Z",
         "price": 2616,
         "mode": "single_ticket"
+      },
+      {
+        "at": "2026-09-08T12:08:37.127Z",
+        "price": 2616,
+        "mode": "single_ticket"
       }
     ]
   },
@@ -121,6 +126,11 @@
           "at": "2026-09-07T22:01:36.192Z",
           "price": 2616,
           "mode": "single_ticket"
+        },
+        {
+          "at": "2026-09-08T12:08:37.127Z",
+          "price": 2616,
+          "mode": "single_ticket"
         }
       ]
     },
@@ -153,15 +163,15 @@
       "into": "TPA",
       "homeFrom": "TPA",
       "isRoundTrip": true,
-      "current": 3400,
+      "current": 3424,
       "mode": "single_ticket",
-      "singleTicket": 3400,
+      "singleTicket": 3424,
       "splitTicket": null,
       "detail": {
         "provider": "british_airways",
-        "fare": 2880,
+        "fare": 2904,
         "bagCost": 520,
-        "trueTotal": 3400,
+        "trueTotal": 3424,
         "carrier": "BA",
         "stops": 0,
         "depLocal": "12:30",
@@ -173,7 +183,7 @@
         "at": "2026-09-07T08:26:07.844Z",
         "price": 3408
       },
-      "changeSinceFirst": -8,
+      "changeSinceFirst": 16,
       "series": [
         {
           "at": "2026-09-07T08:26:07.844Z",
@@ -193,6 +203,11 @@
         {
           "at": "2026-09-07T22:01:36.192Z",
           "price": 3400,
+          "mode": "single_ticket"
+        },
+        {
+          "at": "2026-09-08T12:08:37.127Z",
+          "price": 3424,
           "mode": "single_ticket"
         }
       ]
@@ -267,6 +282,11 @@
           "at": "2026-09-07T22:01:36.192Z",
           "price": 2616,
           "mode": "single_ticket"
+        },
+        {
+          "at": "2026-09-08T12:08:37.127Z",
+          "price": 2616,
+          "mode": "single_ticket"
         }
       ]
     },
@@ -299,15 +319,15 @@
       "into": "TPA",
       "homeFrom": "TPA",
       "isRoundTrip": true,
-      "current": 2748,
+      "current": 2796,
       "mode": "single_ticket",
-      "singleTicket": 2748,
+      "singleTicket": 2796,
       "splitTicket": null,
       "detail": {
         "provider": "british_airways",
-        "fare": 2228,
+        "fare": 2276,
         "bagCost": 520,
-        "trueTotal": 2748,
+        "trueTotal": 2796,
         "carrier": "BA",
         "stops": 0,
         "depLocal": "12:30",
@@ -319,7 +339,7 @@
         "at": "2026-09-07T08:26:07.844Z",
         "price": 2748
       },
-      "changeSinceFirst": 0,
+      "changeSinceFirst": 48,
       "series": [
         {
           "at": "2026-09-07T08:26:07.844Z",
@@ -339,6 +359,11 @@
         {
           "at": "2026-09-07T22:01:36.192Z",
           "price": 2748,
+          "mode": "single_ticket"
+        },
+        {
+          "at": "2026-09-08T12:08:37.127Z",
+          "price": 2796,
           "mode": "single_ticket"
         }
       ]
@@ -365,9 +390,9 @@
     {
       "id": "B1",
       "shape": "B",
-      "nights": 15,
+      "nights": 16,
       "out": "2027-08-11",
-      "back": "2027-08-26",
+      "back": "2027-08-27",
       "origin": "LON",
       "into": "MCO",
       "homeFrom": "MIA",
@@ -384,9 +409,9 @@
     {
       "id": "B2",
       "shape": "B",
-      "nights": 15,
+      "nights": 16,
       "out": "2027-08-11",
-      "back": "2027-08-26",
+      "back": "2027-08-27",
       "origin": "LON",
       "into": "TPA",
       "homeFrom": "MIA",
@@ -403,9 +428,9 @@
     {
       "id": "B3",
       "shape": "B",
-      "nights": 14,
+      "nights": 15,
       "out": "2027-08-12",
-      "back": "2027-08-26",
+      "back": "2027-08-27",
       "origin": "LON",
       "into": "MCO",
       "homeFrom": "MIA",
@@ -422,9 +447,9 @@
     {
       "id": "B4",
       "shape": "B",
-      "nights": 14,
+      "nights": 15,
       "out": "2027-08-12",
-      "back": "2027-08-26",
+      "back": "2027-08-27",
       "origin": "LON",
       "into": "TPA",
       "homeFrom": "MIA",
@@ -444,133 +469,133 @@
       "signature": "2027-08-11|LON>MCO|MCO>LON|2027-08-26",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": false
     },
     "A3": {
       "signature": "2027-08-11|LON>TPA|TPA>LON|2027-08-26",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": false
     },
     "A5": {
       "signature": "2027-08-12|LON>MCO|MCO>LON|2027-08-26",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": false
     },
     "A7": {
       "signature": "2027-08-12|LON>TPA|TPA>LON|2027-08-26",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": false
     },
     "O1": {
       "signature": "2027-08-11|LON>MCO",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": false
     },
     "O2": {
       "signature": "2027-08-11|LON>TPA",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": false
     },
     "O3": {
       "signature": "2027-08-12|LON>MCO",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": false
     },
     "O4": {
       "signature": "2027-08-12|LON>TPA",
       "provider": "british_airways",
       "status": "ok",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": false
     },
     "R1": {
       "signature": "2027-08-26|MCO>LON",
       "provider": "skyscanner",
       "status": "skipped_provider_down",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": false
     },
     "R2": {
       "signature": "2027-08-26|TPA>LON",
       "provider": "skyscanner",
       "status": "skipped_provider_down",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": false
     },
     "R3": {
-      "signature": "2027-08-26|MIA>LON",
+      "signature": "2027-08-27|MIA>LON",
       "provider": "skyscanner",
       "status": "skipped_provider_down",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": false
     },
     "A2-single": {
       "signature": "2027-08-11|LON>MCO|TPA>LON|2027-08-26|single",
       "provider": "skyscanner",
       "status": "no_prices_rendered",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": true
     },
     "A4-single": {
       "signature": "2027-08-11|LON>TPA|MCO>LON|2027-08-26|single",
       "provider": "skyscanner",
       "status": "no_prices_rendered",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": true
     },
     "A6-single": {
       "signature": "2027-08-12|LON>MCO|TPA>LON|2027-08-26|single",
       "provider": "skyscanner",
       "status": "skipped_provider_down",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": true
     },
     "A8-single": {
       "signature": "2027-08-12|LON>TPA|MCO>LON|2027-08-26|single",
       "provider": "skyscanner",
       "status": "skipped_provider_down",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": true
     },
     "B1-single": {
-      "signature": "2027-08-11|LON>MCO|MIA>LON|2027-08-26|single",
+      "signature": "2027-08-11|LON>MCO|MIA>LON|2027-08-27|single",
       "provider": "skyscanner",
       "status": "skipped_provider_down",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": true
     },
     "B2-single": {
-      "signature": "2027-08-11|LON>TPA|MIA>LON|2027-08-26|single",
+      "signature": "2027-08-11|LON>TPA|MIA>LON|2027-08-27|single",
       "provider": "skyscanner",
       "status": "skipped_provider_down",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": true
     },
     "B3-single": {
-      "signature": "2027-08-12|LON>MCO|MIA>LON|2027-08-26|single",
+      "signature": "2027-08-12|LON>MCO|MIA>LON|2027-08-27|single",
       "provider": "skyscanner",
       "status": "skipped_provider_down",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": true
     },
     "B4-single": {
-      "signature": "2027-08-12|LON>TPA|MIA>LON|2027-08-26|single",
+      "signature": "2027-08-12|LON>TPA|MIA>LON|2027-08-27|single",
       "provider": "skyscanner",
       "status": "skipped_provider_down",
-      "at": "2026-09-07T22:01:36.192Z",
+      "at": "2026-09-08T12:08:37.127Z",
       "retired": true
     }
   }
