@@ -1,10 +1,14 @@
 name: Track fares
 
+# RETIRED — 8 September 2026.
+#
+# The schedule is gone deliberately. This workflow no longer runs on its own
+# and will never commit again; see README.md for why the project was stopped.
+#
+# It is kept, manual-only, rather than deleted, because everything in it works
+# for British Airways and the whole thing is one click from running again if it
+# is ever wanted. Running it by hand will collect and commit exactly as before.
 on:
-  schedule:
-    # 07:17 and 19:17 UTC. Deliberately off the hour: GitHub delays runs
-    # scheduled at :00 heavily, because everyone schedules them there.
-    - cron: '17 7,19 * * *'
   workflow_dispatch:
     inputs:
       only:

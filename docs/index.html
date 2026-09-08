@@ -82,12 +82,40 @@
          font-family:var(--mono);font-size:11px;letter-spacing:.06em;
          text-transform:uppercase;color:var(--ink-3)}
   a{color:var(--accent)}
+  /* Retired notice. Deliberately loud: a dashboard whose data has stopped
+     moving must not look like one whose prices simply have not changed. */
+  .retired {
+    border: 1px solid #b4632a;
+    background: #fdf3ec;
+    color: #7a3f12;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 0 0 22px;
+    line-height: 1.5;
+    font-size: 14px;
+  }
+  .retired strong { display: block; margin-bottom: 4px; font-size: 15px; }
+  .retired a { color: #7a3f12; }
+  @media (prefers-color-scheme: dark) {
+    .retired { background: #2b1c10; border-color: #a55f2c; color: #f0c9a6; }
+    .retired a { color: #f0c9a6; }
+  }
 </style>
 </head>
 <body>
 <div class="page">
   <p class="eyebrow">London → Florida · August 2027</p>
   <h1>Florida 2027 Fare Watch</h1>
+  <div class="retired">
+    <strong>Retired — 8 September 2026. These prices are frozen.</strong>
+    Collection has stopped, so nothing below will update again. The figures are
+    the last ones recorded, not current fares, and they will drift further out
+    of date every day. Four of the twelve itineraries were ever priced: British
+    Airways answers this tracker, while Virgin Atlantic and Skyscanner refuse
+    requests from GitHub's servers outright, and BA will not quote a US-origin
+    leg in pounds — which between them left every open jaw unpriceable.
+    See the repository README for the full account.
+  </div>
   <p class="sub" id="sub">Loading…</p>
   <div class="meta" id="meta"></div>
 

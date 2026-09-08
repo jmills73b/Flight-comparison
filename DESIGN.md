@@ -1,6 +1,13 @@
 # Florida 2027 — Flight Price Tracker
 
-Design document. No code yet.
+> **RETIRED — 8 September 2026.** This project has been decommissioned and the
+> collection schedule removed. It is kept as a record of what was built and,
+> more usefully, of what was ruled out and how. README.md has the short version;
+> the sections below are the working detail, left as written rather than tidied
+> up after the fact.
+
+
+Design document, written before the code and kept current as it was built.
 
 A single-purpose price tracker for one specific family holiday: London → Florida,
 August 2027. Not a general-purpose flight search tool. Every design decision below
