@@ -19,16 +19,22 @@ and the reason turned out to be something no amount of code could fix.
 round trips — fly into Orlando or Tampa, come home from the same airport. The
 last figures recorded were:
 
-| | Out | Home | Route | Price |
+| | Out | Home | Route | Final price |
 |---|---|---|---|---|
-| A1 | 11 Aug | 26 Aug | LON → MCO → LON | £2,600 |
+| A1 | 11 Aug | 26 Aug | LON → MCO → LON | £2,616 |
 | A5 | 12 Aug | 26 Aug | LON → MCO → LON | £2,616 |
-| A7 | 12 Aug | 26 Aug | LON → TPA → LON | £2,748 |
-| A3 | 11 Aug | 26 Aug | LON → TPA → LON | £3,408 |
+| A7 | 12 Aug | 26 Aug | LON → TPA → LON | £2,796 |
+| A3 | 11 Aug | 26 Aug | LON → TPA → LON | £3,424 |
 
 Those are British Airways, cheapest available fare brand, plus the cost of
 adding a hold bag for all four passengers. They are a year-out snapshot, not a
-recommendation.
+recommendation — and note that the fare brand is the cheap hand-baggage one, so
+the real Economy Standard price is higher than these figures.
+
+Twelve collection runs happened, on 7 and 8 September 2026, which is enough to
+see the prices move a little (Orlando on the 11th went £2,600 → £2,616 in a day,
+Tampa on the 11th £3,408 → £3,424) and nowhere near enough to say anything about
+a trend. Do not read these four numbers as advice about when to book.
 
 **The other eight never could be.** They are the open jaws — fly into one
 Florida airport and home from another, or home from Miami — and each needs a
@@ -101,7 +107,7 @@ config/searches.yml   the trip — change a date and everything follows
 scripts/collect.js    the collector
 scripts/providers/    one adapter per source (BA, Virgin, Google, Skyscanner)
 scripts/probe-*.js    diagnostics that run against known-bookable dates
-data/history.csv      318 rows of price history, kept
+data/history.csv      414 rows of price history, kept
 data/probe/           saved pages, the evidence behind every finding above
 docs/                 the dashboard, frozen
 DESIGN.md             the full design, and a written record of what went wrong
